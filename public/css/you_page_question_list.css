@@ -1,0 +1,107 @@
+body {
+  background-color: #dedede !important;
+}
+.con_wrap {
+}
+.con_wrap .con_item {
+  background-color: #FFF;
+  margin-bottom: 0.2rem;
+  margin-right: .2rem;
+  margin-left: .2rem;
+  border: .5px solid #ccc;
+}
+.con_wrap .con_item .user_info {
+  line-height: 0.7rem;
+  padding: .2rem 0;
+  padding-left: 0.3rem;
+}
+.con_wrap .con_item .user_info .user_head {
+  width: 0.7rem;
+  height: 0.7rem;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  float: left;
+}
+.con_wrap .con_item .user_info .user_head img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.con_wrap .con_item .user_info .user_name {
+  float: left;
+  font-size: 0.3rem;
+  margin-left: 0.2rem;
+}
+.con_wrap .con_item .user_info .icon_question {
+  margin-left: 0.1rem;
+}
+.con_wrap .con_item .user_info .hongbao {
+  float: right;
+  font-size: 0.28rem;
+  text-align: center;
+  margin-right: 0.3rem;
+}
+.con_wrap .con_item .user_info .hongbao .red_f {
+  color: #e71f19;
+}
+.con_wrap .con_item .con {
+  padding: 0 .2rem;
+  line-height: 1.6;
+  font-size: .35rem;
+}
+.con_wrap .con_item .con .hide_con {
+  background-color: #80818b;
+  color: #FFF;
+  text-align: center;
+  display: inline-block;
+  width: 1.92rem;
+}
+.con_wrap .con_item .con .hide_con:hover {
+  color: #FFF;
+}
+.con_wrap .con_item .con_footer {
+  font-size: 0.24rem;
+  line-height: 0.8rem;
+  padding: 0 .2rem;
+  color: #707070;
+  text-align: right;
+}
+.con_wrap .con_item .con_footer .num {
+  color: #333;
+}
+.con_wrap .con_item .con_footer .mr20 {
+  margin-right: 0.2rem;
+}
+.no_more,
+.loading_txt {
+  font-size: 0.28rem;
+  color: #888;
+  line-height: 2;
+  text-align: center;
+  margin: .2rem;
+  display: none;
+}
+.tab_wrap {
+  position: relative;
+  line-height: 0.6rem;
+}
+.tab_wrap .tab_list {
+  display: -webkit-flex;
+  display: flex;
+  align-items: flex-start;
+  -webkit-align-items: flex-start;
+}
+.tab_wrap .tab_list .tab_item {
+  padding: 0 .2rem;
+  background-color: #FFF;
+  border: .5px solid #dfdfdf;
+  border-bottom: none;
+}
+.tab_wrap .tab_list .tab_item.act {
+}
+.tab_wrap .tab_list .tab_item.act:hover {
+  color: #FFF;
+}
+.tab_wrap .tab_btn:hover {
+  color: #FFF;
+}

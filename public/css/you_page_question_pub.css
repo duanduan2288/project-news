@@ -1,0 +1,223 @@
+body {
+  font-size: 0.32rem;
+  color: #333333;
+  background-color: #dedede !important;
+}
+.clear_f {
+  clear: both;
+  overflow: hidden;
+  height: 0px;
+}
+.icon_prove {
+  margin-right: 0.03rem;
+  display: inline-block;
+  width: 0.26rem;
+  height: 0.26rem;
+  font-size: 0;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("../img/you_zhengming.png");
+}
+.authenticate_icon {
+  margin-right: 0.03rem;
+  display: inline-block;
+  width: 0.36rem;
+  height: 0.36rem;
+  font-size: 0;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("../img/you_pingtaijianding.png");
+}
+.icon_good {
+  margin-right: 0.03rem;
+  display: inline-block;
+  width: 0.3rem;
+  height: 0.3rem;
+  font-size: 0;
+  vertical-align: baseline;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("../img/you_dianzan.png");
+}
+.icon_bad {
+  margin-right: 0.03rem;
+  display: inline-block;
+  width: 0.3rem;
+  height: 0.3rem;
+  font-size: 0;
+  vertical-align: baseline;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("../img/you_chedan.png");
+}
+.icon_back {
+  margin-right: 0.03rem;
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  font-size: 0;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("../img/you_fanhui.png");
+}
+.icon_question {
+  margin-right: 0.03rem;
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  font-size: 0;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("../img/you_wenti.png");
+}
+.icon_hongbao {
+  margin-right: 0.03rem;
+  display: inline-block;
+  width: 0.3rem;
+  height: 0.3rem;
+  font-size: 0;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("../img/you_hongbao.png");
+}
+.ivm {
+  display: inline-block;
+  vertical-align: middle;
+}
+#PAY_loading_wrap {
+  position: fixed;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  line-height: 8rem;
+  color: #FFF;
+  top: 0;
+  left: 0;
+  text-align: center;
+}
+#PAY_loading_wrap:hover {
+  color: #FFF;
+}
+.back_wrap {
+  margin-bottom: 0.2rem;
+  background-color: #FFF;
+  height: 0.92rem;
+  line-height: 0.92rem;
+  border-bottom: .5px solid #dcdcdc;
+  font-size: 0.34rem;
+}
+.back_wrap .head_img {
+  width: 0.7rem;
+  height: 0.7rem;
+  vertical-align: middle;
+  margin-left: 0.1rem;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+}
+.back_wrap .icon_back {
+  margin-left: 0.2rem;
+}
+.back_wrap .tle {
+  margin-left: 0.1rem;
+}
+.main_container {
+  padding: 0 .2rem;
+}
+.main_container textarea {
+  display: block;
+  width: 100%;
+  height: 2rem;
+  font-size: .3rem;
+  box-sizing: border-box;
+  padding: .1rem;
+}
+
+.main_container .price_wrap {
+  font-size: 0.28rem;
+}
+.main_container .price_wrap .price_item {
+  display: inline-block;
+  padding: .15rem .2rem;
+  width: 1rem;
+  background-color: #FFF;
+  margin-right: 0.1rem;
+  vertical-align: middle;
+  text-align: center;
+  border: .5px solid #dfdfdf;
+}
+.main_container .price_wrap .price_item.act {
+  background: #48abff;
+  color: #FFF;
+}
+.main_container .price_wrap .price_item.act:hover {
+  color: #FFF;
+}
+.main_container .price_wrap .price_custom {
+  width: 1.6rem;
+  height: 0.52rem;
+  vertical-align: middle;
+  text-align: center;
+  border: .5px solid #dfdfdf;
+}
+.main_container .price_wrap .price_custom.act {
+  border-color: #48abff;
+}
+.main_container .price_wrap {
+  margin-top: 0.2rem;
+}
+.main_container .price_wrap p{
+  margin-bottom: .2rem;
+}
+.main_container .pub_btn {
+  color: #FFF;
+  text-align: center;
+  background-color: #48abff;
+  width: 6.15rem;
+  height: 0.78rem;
+  line-height: 0.78rem;
+  margin-left: auto;
+  margin-right: auto;
+  -webkit-border-radius: 0.05rem;
+  border-radius: 0.05rem;
+  margin-top: 0.4rem;
+}
+.main_container .pub_btn:hover {
+  color: #FFF;
+}
+
+
+.main_container .price_wrap .price_item, .event_type_wrap .price_item {
+    display: inline-block;
+    padding: .15rem .2rem;
+    width: 1rem;
+    background-color: #FFF;
+    margin-right: 0.1rem;
+    vertical-align: middle;
+    text-align: center;
+    border: .5px solid #dfdfdf;
+}
+.main_container .price_wrap .price_item.mt2, .event_type_wrap .price_item.mt2{
+    margin-top: .2rem;
+}
+
+.main_container .price_wrap .price_item.act, .event_type_wrap .price_item.act{
+    background: #48abff;
+    color: #FFF;
+}
+
+.main_container .price_wrap .price_item.act:hover, .event_type_wrap .price_item.act:hover{
+    color: #FFF;
+}

@@ -1,0 +1,15 @@
+*.iml
+public/hook
+.env
+.idea
+public/images/*
+public/upload/*
+public/videos/*
+nbproject
+.buildpath
+.project
+.settings
+Thumbs.db
+.DS_Store
+composer.lock
+*~

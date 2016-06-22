@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" style="font-size: 42.66666666666667px;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>丫丫现场问问发布</title>
+    <meta name="keywords" content="keywords">
+    <meta name="description" content="description">
+    <meta content="yes" name="apple-touch-fullscreen">
+    <meta content="telephone=no,email=no" name="format-detection">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="viewport" content="width=device-width,  initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <script>
+        (function(c, a) {
+            var d = "orientationchange" in a ? "orientationchange" : "resize",
+                e = parseInt("750_mate"),
+                f = c.documentElement,
+                b = function() {
+                    f.style.fontSize = a.innerWidth / e * 100 + "px"
+                };
+            b();
+            a.addEventListener(d, b, !1);
+            delete "750_mate"
+        })(document, window);
+    </script>
+    <script type="text/javascript">
+        window.VARS = {};
+    </script>
+    <link rel="stylesheet" type="text/css" href="./css/base.css"></link>
+    <link rel="stylesheet" type="text/css" href="./css/you_page_question_pub.css"></link>
+    <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
+    <link rel="stylesheet" href="./css/custom.css">
+    <style>
+        html,body {
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main_container question_pub">
+        <div class="form-group">
+            <textarea id="content" name="content" placeholder="请输入你要问的现场问题"></textarea>
+        </div>
+        <div class="form-group">
+            <h2>任选一个内容相近的标签</h2>
+            <div class="event_type_wrap">
+              <div class="price_item" data-value="活动">活动</div>
+              <div class="price_item" data-value="景色">景色</div>
+              <div class="price_item" data-value="事件">事件</div>
+              <div class="price_item" data-value="课堂">课堂</div>
+            </div>
+        </div>
+        <div class="form-group" style="border-bottom:none;">
+            <h2>打赏<small>（至少5元）</small></h2>
+            <div class="price_wrap"> 
+                <div class="price_item act" data-value="5">5元</div>
+                <div class="price_item" data-value="10">10元</div>
+                <div class="price_item" data-value="100">100元</div>
+                <!-- <div class="price_item act" data-value="0">免费</div> --><input type="num" class="price_custom" placeholder="自定义"> 
+            </div>
+        </div>
+        <div class="pub_btn">发布提问</div>
+    </div>
+    <script type="text/html" id="top_back_tpl">
+        <div class="back_wrap question">
+            <img src="<?=avatar ?>" class="head_img"> <span class="tle"><?=name ?></span> </div>
+    </script>
+    <div id="PAY_loading_wrap" style="display:none;">支付信息读取中..</div>
+    <script type="text/javascript" src="./script/you_page_question_pub.js"></script>
+</body>
+
+</html>

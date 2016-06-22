@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" style="font-size: 42.66666666666667px;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>title</title>
+    <meta name="keywords" content="keywords">
+    <meta name="description" content="description">
+    <meta content="yes" name="apple-touch-fullscreen">
+    <meta content="telephone=no,email=no" name="format-detection">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="viewport" content="width=device-width,  initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <script>
+        (function(c, a) {
+            var d = "orientationchange" in a ? "orientationchange" : "resize",
+                e = parseInt("750_mate"),
+                f = c.documentElement,
+                b = function() {
+                    f.style.fontSize = a.innerWidth / e * 100 + "px"
+                };
+            b();
+            a.addEventListener(d, b, !1);
+            delete "750_mate"
+        })(document, window);
+    </script>
+    <script type="text/javascript">
+        window.VARS = {};
+    </script>
+    <link rel="stylesheet" type="text/css" href="./css/base.css"></link>
+    <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
+</head>
+
+<body>关于我们
+    <div id="PAY_loading_wrap" style="display:none;">支付信息读取中..</div>
+</body>
+
+</html>

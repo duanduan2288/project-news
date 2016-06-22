@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="font-size: 42.66666666666667px;">
+
+<head>
+  <meta charset="UTF-8">
+  <title>信息列表</title>
+  <meta name="keywords" content="keywords">
+  <meta name="description" content="description">
+  <meta content="yes" name="apple-touch-fullscreen">
+  <meta content="telephone=no,email=no" name="format-detection">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1, user-scalable=0">
+  <script>
+  (function (c, a) {
+    var d = "orientationchange" in a ? "orientationchange" : "resize",
+    e = parseInt("750_mate"),
+    f = c.documentElement,
+    b = function () {
+      f.style.fontSize = a.innerWidth / e * 100 + "px"
+    };
+    b();
+    a.addEventListener(d, b, !1);
+    delete "750_mate"
+  })(document, window);
+  </script>
+  <script type="text/javascript">
+  window.VARS = {};
+  </script>
+  <link rel="stylesheet" href="./css/basscss.min.css" media="screen" title="no title" charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="./css/base.css"></link>
+  <link rel="stylesheet" type="text/css" href="./css/you_page_information_list.css"></link>
+  <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
+</head>
+
+<body>
+  <div class="main_container">
+    <div class="top_wrap">
+      <div class="site_tle">
+        <p>标题标题</p>
+        <p>标题标题标题标题标题标题标</p>
+      </div>
+      <div class="menu_wrap">
+        <div class="menu_btn"></div>
+        <div class="menu_list_wrap" style="display:none;">
+          <ul class="menu_list"></ul>
+        </div>
+      </div>
+      <div class="search_wrap">
+        <form onsubmit="return false" id="search_form"><input type="text" class="search_input" name="key"> <input
+          type="hidden" name="type" value="news">
+          <button type="submit" class="search_btn"></button>
+        </form>
+      </div>
+      <div class="clear_f"></div>
+    </div>
+    <div class="tab_wrap">
+      <div class="tab_list">
+        <div class="tab_item act" link-type="inforList">现场</div>
+        <div class="tab_item" link-type="questionList">问问</div>
+      </div>
+      <div class="tab_btn" link-type="inforPub"><p>我来写</p></div>
+    </div>
+    <div class="con_wrap"></div>
+    <div class="loading_txt">读取数据中..</div>
+    <div class="no_more">搜索可查看更多以前的现场信息..</div>
+    <script type="text/html" id="con_item_tpl">
+      <div class="con_item" data-id="<?=item.id ?>">
+        <div class="user_info">
+          <div class="user_head"><img src="<?=item.avatar ?>" alt=""></div>
+          <div class="user_name">
+            <?=item.nickname ?>
+          </div>
+          <div class="prove<?if(item.thumb && item.thumb.length){?> act<?}?>"><i class="icon_prove"></i>有证</div>
+          <div class="clear_f"></div>
+        </div>
+        <div class="con">
+          <?=(item.content.length>200 ? item.content.substr(0,200)+'...' : item.content) ?>
+          <?if(item.price != 0){?>
+            <span class="hide_con">￥<?=item.total_fee ?>元</span>
+          <?} else {?>
+            <span class="hide_con">公开</span>
+          <?}?>
+          </div>
+          <div class="con_footer">
+            <div class="authenticate_wrap">
+              <?if(item.confirm_status>0){?>
+                <i class="authenticate_icon"></i>
+                <span class="authenticate_result">
+                  <?if(item.confirm_status==1){?>
+                    鉴定中
+                  <?} else if(item.confirm_status==2) {?>
+                    <span style="color:#5cb85c;">人工鉴定有效</span>
+                  <?} else if(item.confirm_status==3){?>
+                    <span style="color:#d9534f;">人工鉴定无效</span>
+                  <?} else {?>
+                    <span style="color:#f0ad4e;">鉴定不确定</span>
+                  <?}?>
+                </span>
+              <?}?>
+            </div>
+            <div class="comments">
+              <span><i class="icon_good"></i><span class="num"><?=item.useful_count ?></span>人觉得有效 </span>
+              <span><i class="icon_bad"></i><span class="num"><?=item.useless_count ?></span>人认为扯淡 </span>
+            </div>
+
+            <div class="clear_f"></div>
+            </div>
+        </div>
+        <? if (item.is_admin) { ?>
+        <div style="background: white;" data-id="<?=item.id ?>" id="ssz-admin" class="col-12 px1 mb1 py1 border-box">
+          <? if (item.is_display == '0') { ?>
+          <span href="#" class="ssz-fake-delete" onclick="fakeDelete(this)">不再隐藏</span>
+          <? } else { ?>
+          <span href="#" class="ssz-fake-delete" onclick="fakeDelete(this)">隐藏信息</span>
+          <? } ?>
+          <? if (item.deleted_at) { ?>
+          <span href="#" class="ssz-delete" onclick="drop(this)">恢复信息</span>
+          <? } else { ?>
+          <span href="#" class="ssz-delete" onclick="drop(this)">删除信息</span>
+          <? } ?>
+          <? if (item.confirm_status) { ?>
+          <select class="ssz-dete" onchange="select(this)">
+            <? if (item.confirm_status == 1) { ?>
+              <option value="1" selected="">鉴定中</option>
+            <? } else { ?>
+              <option value="1">鉴定中</option>
+            <? } ?>
+            <? if (item.confirm_status == 2) { ?>
+              <option value="2" selected="">有效</option>
+            <? } else { ?>
+              <option value="2">有效</option>
+            <? } ?>
+            <? if (item.confirm_status == 3) { ?>
+              <option value="3" selected="">无效</option>
+            <? } else { ?>
+              <option value="3">无效</option>
+            <? } ?>
+            <? if (item.confirm_status == 4) { ?>
+              <option value="4">不清楚</option>
+            <? } else { ?>
+              <option value="4">不清楚</option>
+            <? } ?>
+          </select>
+          <? } ?>
+        </div>
+        <? } ?>
+      </script>
+    </div>
+    <div id="PAY_loading_wrap" style="display:none;">支付信息读取中..</div>
+    <script type="text/javascript" src="./script/you_page_information_dete_list.js"></script>
+    <script type="text/javascript">
+    function fakeDelete(ele) {
+      var id = $(ele).parent().attr('data-id');
+      var value = $(ele).html() == '不再隐藏' ? 1 : 0;
+      $.post('/news/fakedelete', {id: id, is_display: value}, function(data) {
+        $(ele).html(data.msg)
+      });
+      return false;
+    };
+    function drop(ele) {
+      var id = $(ele).parent().attr('data-id');
+      var value = $(ele).html() == '恢复信息' ? 1 : 0;
+      $.post('/news/delete', {id: id, value: value}, function(data) {
+        console.log(data);
+        if (data.code == 200) {
+          $(ele).html(data.msg);
+        }
+      });
+      return true;
+    }
+    function select(ele) {
+      var id = $(ele).parent().attr('data-id');
+      $.post('/news/update', {id: id, type: 'news', 'confirm_status': $(ele).val()}, function(data) {
+        console.log(data);
+        if (data.code == 200) {
+          alert('操作成功');
+        }
+      });
+      return false;
+    };
+    </script>
+  </body>
+
+  </html>

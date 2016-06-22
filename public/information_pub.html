@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" style="font-size: 42.66666666666667px;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>丫丫现场发布</title>
+    <meta name="keywords" content="keywords">
+    <meta name="description" content="description">
+    <meta content="yes" name="apple-touch-fullscreen">
+    <meta content="telephone=no,email=no" name="format-detection">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <meta name="viewport"
+          content="width=device-width,  initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <script>
+        (function (c, a) {
+            var d = "orientationchange" in a ? "orientationchange" : "resize",
+                    e = parseInt("750_mate"),
+                    f = c.documentElement,
+                    b = function () {
+                        f.style.fontSize = a.innerWidth / e * 100 + "px"
+                    };
+            b();
+            a.addEventListener(d, b, !1);
+            delete "750_mate"
+        })(document, window);
+    </script>
+    <script type="text/javascript">
+        window.VARS = {};
+    </script>
+    <link rel="stylesheet" type="text/css" href="./css/base.css" />
+    <link rel="stylesheet" type="text/css" href="./css/you_page_information_pub.css" />
+    <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
+    <link rel="stylesheet" href="./css/custom.css">
+</head>
+
+<body style="padding-bottom:0;">
+<div class="main_container pub">
+    <form onsubmit="return false" id="pub_form">
+        <div class="form-group textarea">
+            <h2>现场信息显示部分<span class="require_flag">*</span></h2>
+            <textarea id="content" name="content" placeholder="此部分内容对外显示，您可以大致写下您要发布的现场内容，引起大家的注意（0-300字）"></textarea>
+        </div>
+        <div class="form-group textarea">
+            <h2>现场信息支付部分<span class="require_flag">*</span></h2>
+            <textarea id="qrcode_content" name="qrcode_content" placeholder="此部分内容对外隐藏，需支付才能显示，您需要给力填写，才能得到读者的好评（0-2000字）"></textarea>
+        </div>
+        <div class="form-group">
+            <h2>
+                上传图片/视频/文件
+                <small>（可预览前</small>
+                <select name="free_number" id="free_number">
+                    <option value="0">0</option>
+                    <option value="1" selected>1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+                <small>个文件）</small>
+            </h2>
+            <p id="ssz-limit-2" class="require_flag" style="margin-top: 4px;"></p>
+              <div class="hide_upload_wrap">
+                  <div class="upload_btn"><input uploadNum="0" uploadImageNum="0" uploadVideoNum="0" data-max-image="9" data-max-video="3" type="file" id="hide_file_input"></div>
+            </div>
+        </div>
+        <div class="form-group">
+            <h2>任选一个内容相近的标签</h2>
+            <div class="event_type_wrap" style="margin: 5px 0">
+              <div class="price_item" data-value="活动">活动</div>
+              <div class="price_item" data-value="景色">景色</div>
+              <div class="price_item" data-value="事件">事件</div>
+              <div class="price_item" data-value="课堂">课堂</div>
+            </div>
+        </div>
+        <div class="form-group">
+            <h2>定价<small>（至少2元）</small></h2>
+            <div class="price_wrap">
+                <div class="price_item" data-value="5">5元</div>
+                <div class="price_item" data-value="10">10元</div>
+                <div class="price_item" data-value="100">100元</div>
+                <input type="number" max="1000" min="0.01" class="price_custom" placeholder="自定义">
+                <div class="mt2 price_item act" data-value="0">公开</div>
+            </div>
+        </div>
+        <div class="form-group evaluate">
+            申请小丫鉴定 <input type="checkbox" name="confirm_status" />
+            <small style="font-size: 60%; color:red;">(申请小丫鉴定可以有效增加信息可信度哦)</small>
+        </div>
+        <div class="pub_btn">发布</div>
+    </form>
+    <script type="text/html" id="upload_item_tpl">
+        <div class="upload_item">上传中</div>
+    </script>
+</div>
+<div id="PAY_loading_wrap" style="display:none;">支付信息读取中..</div>
+<script type="text/javascript" src="./script/you_page_information_pub.js"></script>
+</body>
+
+</html>

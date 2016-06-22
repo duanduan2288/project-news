@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" style="font-size: 42.66666666666667px;">
+
+<head>
+  <meta charset="UTF-8">
+  <title>丫丫现场</title>
+  <meta name="keywords" content="keywords">
+  <meta name="description" content="description">
+  <meta content="yes" name="apple-touch-fullscreen">
+  <meta content="telephone=no,email=no" name="format-detection">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="viewport" content="width=device-width,  initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+  <script>
+  (function(c, a) {
+    var d = "orientationchange" in a ? "orientationchange" : "resize",
+    e = parseInt("750_mate"),
+    f = c.documentElement,
+    b = function() {
+      f.style.fontSize = a.innerWidth / e * 100 + "px"
+    };
+    b();
+    a.addEventListener(d, b, !1);
+    delete "750_mate"
+  })(document, window);
+  </script>
+  <script type="text/javascript">
+  window.VARS = {};
+  </script>
+  <link rel="stylesheet" type="text/css" href="./css/base.css"></link>
+  <link rel="stylesheet" type="text/css" href="./css/you_page_question_list.css"></link>
+  <link rel="stylesheet" type="text/css" href="./css/you_page_information_list.css"></link>
+  <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
+  <link href="./css/basscss-important.css" rel="stylesheet">
+  <link rel="stylesheet" href="./css/colors.min.css">
+  <link rel="stylesheet" href="./css/added.css">
+  <link rel="stylesheet" href="./css/custom.css">
+</head>
+
+<body>
+  <div class="main_container list">
+    <div class="top_wrap col-12 p0 m0">
+        <div class="clearfix site_tle m0 border-box px1 py1 col-12 bg-white">
+          <p class="left pr1 border-right m0">标题标题</p>
+          <p class="left pl1 m0" style="padding-top: .05rem;"><span>传递现场信息</span><br><span style="padding-top: 3px; display: inline-block;">给最需要的人</span></p>
+          <div class="menu_wrap right">
+            <div class="menu_btn"></div>
+            <div class="menu_list_wrap" style="display:none;">
+              <ul class="menu_list"></ul>
+            </div>
+          </div>
+        </div>
+      <div class="col-12 search_wrap">
+        <form class="px1 clearfix" onsubmit="return false" id="search_form">
+          <input type="text" class="col col-10 search_input my1 px1 border-box" name="key" placeholder="可能搜索到列表中未显示的内容" />
+          <input type="hidden" name="type" value="news">
+          <button class="col border-box px1 col-2 my1 bg-white" type="submit">搜索</button>
+        </form>
+      </div>
+    </div>
+    <div class="tab_fixed">
+      <a href="information_list.html">现场</a>
+      <a href="question_list.html" class="active">问问</a>
+    </div>
+    <div style="padding: .2rem .5rem;">
+      <a href="question_pub.html" class="custom_pub_btn">我问现场</a>
+    </div>
+    <!-- <div class="tab_wrap clearfix">
+      <div class="tab_list">
+        <div class="tab_item" link-type="inforList">现场</div>
+        <div class="tab_item act" link-type="questionList">问问</div>
+      </div>
+      <div class="tab_btn" link-type="questionPub"><p>我来问</p></div>
+    </div> -->
+    <div class="con_wrap"> </div>
+    <div class="loading_txt">读取数据中..</div>
+    <div class="no_more">搜索可查看更多以前的现场问问..</div>
+    <script type="text/html" id="con_item_tpl">
+      <div class="con_item" data-id="<?=item.id ?>" id="item<?=item.id ?>">
+        <div class="user_info">
+          <div class="user_head"> <img src="<?=item.avatar ?>" alt=""></div>
+          <div class="user_name">
+            <?=item.nickname ?><i class="icon_question"></i></div>
+            <div class="hongbao"> <i class="icon_hongbao"></i> <span class="red_f"><?=item.price ?></span>元打赏 </div>
+            <div style="font-size: .27rem;font-weight: bold;" class="right pr1"><?=item.event_type?></div>
+            <div class="clear_f"></div>
+          </div>
+          <div class="con">
+            <?=item.content ?>
+          </div>
+          <div class="con_footer">
+            <span><?=item.created_at.substr(0, 16) ?></span>
+            <!-- <span class="mr20">				<span class="num"><?=item.answer_count ?></span>人回答 </span> <span>				<i class="icon_good"></i><span class="num"><?=item.effect_count ?></span>人觉得有效 </span> -->
+          </div>
+
+        </div>
+        <? if (item.is_admin) { ?>
+          <div class="col-12 bg-red mb1 p1 border">
+            <a class="inline-block" onclick="userDelete(this)" data-id="<?=item.id?>" href="#"><? if (item.deleted_at) {?>恢复信息<?}else {?>删除信息<?}?></a>
+            <a class="inline-block" onclick="fakeDelete(this)" data-id="<?=item.id?>" href="#"><? if (item.is_display) {?>隐藏信息<?}else {?>不再隐藏<?}?></a>
+          </div>
+        <? } ?>
+      </script>
+    </div>
+    <div class="share_modal" id="intro_page">
+      <div class="close">
+        &times;
+      </div>
+      <div class="content">
+        <p>
+          会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁
+        </p>
+      </div>
+    </div>
+    <script type="text/html" id="top_back_tpl">
+      <div class="back_wrap">
+        <a class="icon_back" href="<?=link ?>"></a> <img src="<?=avatar ?>" class="head_img"> <span class="tle"><?=name ?></span> </div>
+      </script>
+      <div id="PAY_loading_wrap" style="display:none;">支付信息读取中..</div>
+      <script type="text/javascript" src="./script/you_page_question_list.js"></script>
+      <script type="text/javascript">
+      function userDelete(ele) {
+        var id = $(ele).attr('data-id');
+        var value = $(ele).html().indexOf('删除') > -1 ? 0 : 1;
+        $.post('/news/delete', {id: id, value: value, type: 'question'}, function(data) {
+          console.log(data);
+          if (data.code == 200) {
+            $(ele).html(data.msg);
+          } else {
+            alert(data.msg);
+          }
+        });
+        return true;
+      }
+      function fakeDelete(ele) {
+        var id = $(ele).attr('data-id');
+        var value = $(ele).html().indexOf('隐藏信息') > -1 ? 0: 1;
+        $.post('/news/fakedelete', {id: id, is_display: value, type: 'question'}, function(data) {
+          console.log(data);
+          if (data.code == 200 || data.code == 201) {
+            $(ele).html(data.msg);
+          }
+        });
+      }
+      </script>
+    </body>
+
+    </html>
