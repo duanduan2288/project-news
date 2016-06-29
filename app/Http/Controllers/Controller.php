@@ -8,6 +8,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesResources;
 
+use Illuminate\Support\Facades\Session;
 use Request;
 
 use EasyWeChat\Foundation\Application;
@@ -94,19 +95,20 @@ class Controller extends BaseController
 
     public function do_oauth()
     {
+        $session = Session::get("wechat_user");
         $app = $this->return_app();
 
         $oauth = $app->oauth;
 
         // 未登录
-        if (!isset($_SESSION['wechat_user'])) {
+        if (empty($session)) {
 
-            $_SESSION['target_url'] = $this->target_url;
+            $session['target_url'] = $this->target_url;
 
             $oauth->redirect()->send();
         }else{
             // 已经登录过
-            return $_SESSION['wechat_user'];
+            return $session;
         }
     }
     public function return_js_sdk()
@@ -132,7 +134,8 @@ class Controller extends BaseController
 
     public function _is_login()
     {
-        if(!$_SESSION['wechat_user']['id'])
+        $session = Session::get("wechat_user");
+        if(!$session['id'])
         {
            // $this->get_userinfo($_SERVER['HTTP_HOST']);
         }
@@ -140,6 +143,7 @@ class Controller extends BaseController
 
     public function _is_admin()
     {
-       return AdminUser::where(['openid' => $_SESSION['wechat_user']['id']])->first() ? true : false;
+        $session = Session::get("wechat_user");
+        return AdminUser::where(['openid' => $session['id']])->first() ? true : false;
     }
 }

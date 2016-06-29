@@ -6,8 +6,8 @@ use App\Services\ServiceFile;
 use App\Services\ServiceNews;
 use App\Services\ServiceUpload;
 use App\Vote;
-use EasyWeChat\Message\Text;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Session;
 use Requests;
 use App\Question;
 use App\Answer;
@@ -21,7 +21,8 @@ class NewsController extends Controller
 {
   public function getLogin()
   {
-    if ($_SESSION['wechat_user']['id'])
+    $session = Session::get("wechat_user");
+    if ($session['id'])
     {
       return redirect($_SERVER['HTTP_REFERER'] ?  : "/");
     }
@@ -31,7 +32,8 @@ class NewsController extends Controller
 
   public function getUser()
   {
-    return $this->output($_SESSION['wechat_user']);
+    $session = Session::get("wechat_user");
+    return $this->output($session);
   }
 
   public function getSearch()
@@ -58,12 +60,12 @@ class NewsController extends Controller
   public function getIndex() {
     if (Request::input('page')) {
       $pagesize = 10;
-
+      $session = Session::get("wechat_user");
       $start = (Request::input('page') - 1) * $pagesize;
 
-      $openid = $_SESSION['wechat_user']['id'];
+      $openid = $session['id'];
       $is_admin = 0;
-      if (AdminUser::where('openid', $_SESSION['wechat_user']['id'])->first()) {
+      if (AdminUser::where('openid', $session['id'])->first()) {
         $is_admin = 1;
       }
       if ($this->requestData['type'] == 'news') {
@@ -730,10 +732,10 @@ class NewsController extends Controller
       $oauth = $app->oauth;
 
       $user = $oauth->user();
-
-      $_SESSION['wechat_user'] = $user->toArray();
-
-      $targetUrl = empty($_SESSION['target_url']) ?  "http://" . $_SERVER['HTTP_HOST'] . "/information_list.html" : $_SESSION['target_url'];
+      Session::put('wechat_user',$user->toArray());
+//      $_SESSION['wechat_user'] = $user->toArray();
+      $session = Session::get("wechat_user");
+      $targetUrl = empty($session['target_url']) ?  "http://" . $_SERVER['HTTP_HOST'] . "/information_list.html" : $session['target_url'];
 
       return redirect($targetUrl);
     }catch(\Exception $e){
@@ -746,11 +748,12 @@ class NewsController extends Controller
   }
 
   public function postOrderpayback() {
+    $session = Session::get("wechat_user");
     $where = [
         'vote_id' => $this->requestData['vote_id'],
         'type'    => $this->requestData['type'],
-        'openid'  => $_SESSION['wechat_user']['id'],
-        'nickname'=> $_SESSION['wechat_user']['nickname'],//duan
+        'openid'  => $session['id'],
+        'nickname'=> $session['nickname'],//duan
     ];
     $params = [
         'files' => $this->requestData['files'],
