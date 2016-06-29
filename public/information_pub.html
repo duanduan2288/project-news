@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" style="font-size: 42.66666666666667px;">
-
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?45d3a5f37d3fa24dbd75e9a6477f1019";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
 <head>
     <meta charset="UTF-8">
     <title>丫丫现场发布</title>
@@ -39,11 +47,13 @@
     <form onsubmit="return false" id="pub_form">
         <div class="form-group textarea">
             <h2>现场信息显示部分<span class="require_flag">*</span></h2>
-            <textarea id="content" name="content" placeholder="此部分内容对外显示，您可以大致写下您要发布的现场内容，引起大家的注意（0-300字）"></textarea>
+            <textarea id="content" name="content" placeholder="此部分内容对外显示，您可以大致写下您要发布的现场内容，引起大家的注意"></textarea>
+            <p class="input_hint">300</p>
         </div>
         <div class="form-group textarea">
             <h2>现场信息支付部分<span class="require_flag">*</span></h2>
-            <textarea id="qrcode_content" name="qrcode_content" placeholder="此部分内容对外隐藏，需支付才能显示，您需要给力填写，才能得到读者的好评（0-2000字）"></textarea>
+            <textarea id="qrcode_content" name="qrcode_content" placeholder="此部分内容对外隐藏，需支付才能显示，您需要给力填写，才能得到读者的好评"></textarea>
+            <p class="input_hint">2000</p>
         </div>
         <div class="form-group">
             <h2>
@@ -59,7 +69,7 @@
             </h2>
             <p id="ssz-limit-2" class="require_flag" style="margin-top: 4px;"></p>
               <div class="hide_upload_wrap">
-                  <div class="upload_btn"><input uploadNum="0" uploadImageNum="0" uploadVideoNum="0" data-max-image="9" data-max-video="3" type="file" id="hide_file_input"></div>
+                  <div class="upload_btn"><input data-uploadnum="0" data-maxnum="30" type="file" id="hide_file_input"></div>
             </div>
         </div>
         <div class="form-group">
@@ -81,7 +91,7 @@
                 <div class="mt2 price_item act" data-value="0">公开</div>
             </div>
         </div>
-        <div class="form-group evaluate">
+        <div class="form-group evaluate" style="display: none;">
             申请小丫鉴定 <input type="checkbox" name="confirm_status" />
             <small style="font-size: 60%; color:red;">(申请小丫鉴定可以有效增加信息可信度哦)</small>
         </div>

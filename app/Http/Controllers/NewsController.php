@@ -16,7 +16,6 @@ use App\OrderPayBack;
 use App\AdminUser;
 use App\Orders;
 use Log;
-use Illuminate\Support\Facades\DB;
 // use App\Http\Controllers\WxtestClass;
 class NewsController extends Controller
 {
@@ -203,9 +202,9 @@ class NewsController extends Controller
     $this->requestData['price'] = ($this->requestData['price'] <= 10000) ? $this->requestData['price'] : 10000;//modify by duan
 
     $this->requestData['total_fee'] = $this->requestData['price'];
-    $this->requestData['file_number'] = json_encode($this->requestData['file_number']);
 
     if ($this->requestData['type'] == 'news') {
+      $this->requestData['file_number'] = json_encode($this->requestData['file_number']);
       $result = News::create($this->requestData + $this->returnUser());
     }
     elseif ($this->requestData['type'] == 'question') {
@@ -215,83 +214,82 @@ class NewsController extends Controller
     return $this->output($result);
   }
 
-  /**
-   * new 和 answer 的投票
-   *
-   * @return \Illuminate\Http\JsonResponse
-   */
-  public function postVote() {
+  public function postVote()
+  {
     $where = [
         'openid' => $_SESSION['wechat_user']['id'],
         'vote_id' => $this->requestData['id'],
         'type' => $this->requestData['type']
     ];
-    // 判断是否自己给自己投票
-    $news_id = [
-        'id' => $this->requestData['id']
-    ];
-    if ($this->requestData['type'] == 'news') {
-      $news = News::where($news_id)->get()->toArray();
-      if (strcmp($news[0]['openid'], $where['openid']) == 0) {
-        $result = [
-            'code' => 101,
-            'msg' => '自己不能给自己投票'
-        ];
-        return response()->json($result);
-      }
-    } else if ($this->requestData['type'] == 'answer') {
-      $answer = Answer::where($news_id)->get()->toArray();
-      if (strcmp($answer[0]['openid'], $where['openid']) == 0) {
-        $result = [
-            'code' => 101,
-            'msg' => '自己不能给自己投票'
-        ];
-        return response()->json($result);
-      }
-    }
-    // 判断是否已经有投票，无法修改投票
+    //查看是否已经投过票
     if (Vote::where($where)->get()->toArray()) {
       $result = [
           'code' => 123,
           'msg' => '无法修改投票！'
       ];
+
       return response()->json($result);
-    } else if ($this->requestData['type'] == 'news') {
-      //==============================================
-      //======评价news
-      //==============================================
+    }
+    // 判断是否自己给自己投票
+    $news_id = [
+        'id' => $this->requestData['id']
+    ];
+    if ($this->requestData['type'] == 'news') {
+      $model = News::where($news_id)->first()->toArray();
+      $order = Orders::where(['type' => 'news', 'pay_id' => $this->requestData['id'], 'pay_status' => 'PAY_SUCCESS'])->first();
+      $price = $model["price"];
+    } else {
+      $model = Answer::where($news_id)->first()->toArray();
+      $order = Orders::where(['type' => 'answer', 'pay_id' => $this->requestData['id'], 'pay_status' => 'PAY_SUCCESS'])->first();
+      $vote_question = Question::where(['id' => $this->requestData['q_id']])->first()->toArray();
+      $price = $vote_question["price"];
+    }
+    $openid = $model['openid'];
+    if (strcmp($openid, $where['openid']) == 0) {
+      $result = [
+          'code' => 101,
+          'msg' => '自己不能给自己投票'
+      ];
 
-      $_new = News::where($news_id)->first()->toArray();
-      if ($_new['price'] != 0 && !(Orders::where(['type' => 'news', 'pay_id' => $this->requestData['id'], 'pay_status' => 'PAY_SUCCESS'])->first())) {
-        $result = [
-            'code' => '100',
-            'msg' => '未购买对应内容，无法进行评价'
-        ];
-        return response()->json($result);
-      }
-      $vote_select = intval($this->requestData['vote']);
-      // 小丫觉得很赞，用户评价完全扯淡
-      if ($_new['confirm_status'] == 1 && $vote_select == 1) {
-        $result = [
-            'code' => 100,
-            'msg' => '此信息平台鉴定很赞，不能评价为扯淡。'
-        ];
-        return response()->json($result);
-      }
-      $this->requestData['vote_id'] = $this->requestData['id'];
-      $result = Vote::create($this->returnUser() + $this->requestData);
-      $result = ['code' => 200];
+      return response()->json($result);
+    }
+    if ($price != 0 && !$order) {
+      $result = [
+          'code' => '100',
+          'msg' => '未购买对应内容，无法进行评价'
+      ];
 
-      $nickName = $this->returnUser()['nickname'];
-      $vote_news = News::where(['id' => $this->requestData['id']])->get()->first()->toArray();
-      $amount = $vote_news['price'] * 100;
-      $openid = $vote_news['openid'];
-      $vote_news_nickname = $vote_news['nickname'];
-      $amount1 = 0;
-      $amount2 = 0;
-      if ($vote_select == 2) {
-        // 用户评价为还行
-        if ($_new['confirm_status'] == 0) {
+      return response()->json($result);
+    }
+    $vote_select = intval($this->requestData['vote']);
+    // 小丫觉得很赞，用户评价完全扯淡
+    if ($model['confirm_status'] == 2 && $vote_select == 1) {
+      $result = [
+          'code' => 100,
+          'msg' => '此信息平台鉴定很赞，不能评价为扯淡。'
+      ];
+
+      return response()->json($result);
+    }
+    //生成投票结果
+    $this->requestData['vote_id'] = $this->requestData['id'];
+    $create_data = $this->requestData;
+
+    if (isset($create_data["q_id"])) unset($create_data["q_id"]);
+
+    Vote::create($this->returnUser() + $create_data);
+    $result = ['code' => 200];
+
+    $nickName = $this->returnUser()['nickname'];
+    $amount = $price * 100;
+
+    $vote_nickname = $model['nickname'];
+    $amount1 = 0;
+    $amount2 = 0;
+    switch ($vote_select) {
+      // 用户评价为还行
+      case 2:
+        if ($model['confirm_status'] == 0) {
           // 付给提供者
           $amount1 = 0.5 * $amount;
           // 退款给购买者
@@ -302,9 +300,10 @@ class NewsController extends Controller
           // 退款给购买者
           $amount2 = 0.45 * $amount;
         }
-      } else if ($vote_select == 3) {
-        // 用户评价为很赞
-        if ($_new['confirm_status'] == 0) {
+        break;
+      // 用户评价为很赞
+      case 3:
+        if ($model['confirm_status'] == 0) {
           // 付给提供者
           $amount1 = $amount;
           // 退款给购买者
@@ -315,12 +314,13 @@ class NewsController extends Controller
           // 退款给购买者
           $amount2 = 0;
         }
-      } else if ($vote_select == 1) {
-        // 用户评价为扯淡
-        switch ($_new['confirm_status']) {
+        break;
+      // 用户评价为扯淡
+      case 1:
+        switch ($model['confirm_status']) {
           case 0://未鉴定
             $amount1 = 0;
-            $amount2 = 0.7 * $amount;
+            $amount2 = $amount;
             break;
           case 1://鉴定中
             $amount1 = 0.05 * $amount;
@@ -328,7 +328,7 @@ class NewsController extends Controller
             break;
           case 6://扯淡
             $amount1 = 0;
-            $amount2 = 0.50* $amount;
+            $amount2 = 0.50 * $amount;
             break;
           case 3://有效
             $amount1 = 0.15 * $amount;
@@ -343,165 +343,83 @@ class NewsController extends Controller
             $amount2 = 0.50 * $amount;
             break;
         }
-      }
-      $amount1 = floor($amount1);
-      if ($amount1 >= 100) {
-        $app = $this->return_app();
-        $merchantPay = $app->merchant_pay;
-        $merchantPayData = [
-            'partner_trade_no' => str_random(16), //随机字符串作为订单号，跟红包和支付一个概念。
-            'openid' => $openid, //收款人的openid
-          // 'openid' => "o4utmv8LN_g8YyvX1CVV2qxD-3bI", //收款人的openid
-            'check_name' => 'NO_CHECK',  //文档中有三种校验实名的方法 NO_CHECK OPTION_CHECK FORCE_CHECK
-            'amount' => $amount1,  //单位为分
-            'desc' => $nickName . '购买了您的内容[丫丫传批量付款]',
-            'spbill_create_ip' => $_SERVER['REMOTE_ADDR'], //发起交易的IP地址
-        ];
-        $pay_result = $merchantPay->send($merchantPayData);
-        if ($pay_result['result_code'] == 'FAIL') {
-          $result['msg'] = $pay_result['err_code_des'];
-        } else {
-          $result['msg'] = "评价成功，相应款项已经支付给提供者。";
-        }
-        Log::info($pay_result);
-        // return response()->json($result);
-      } else {
-      }
-      $amount2 = floor($amount2);
-      if ($amount2 > 0) {
-        // 需要退款时，要先获取原订单的id号，同时自己生成一个退款单号，同时要先查询是否已经发起过退款操作
-        $out_trade_no = Orders::where(['type' => 'news', 'pay_id' => $this->requestData['id'], 'pay_status' => 'PAY_SUCCESS'])->first();
-        if ($out_trade_no) {
-          $out_trade_no = $out_trade_no->toArray()['out_trade_no'];
-          $app = $this->return_app();
-          $payment = $app->payment;
-          $_result = $payment->queryRefund($out_trade_no);
-          $out_refund_no = str_random(32);
-          // Log::info('amount2: ' . $amount2);
-          $_result = $payment->refund($out_trade_no, $out_refund_no, $amount, $amount2);
-          // Log::info($_result);
-          if ($_result['return_code'] == 'SUCCESS') {
-          } else {
-            $result['code'] = 100;
-            $result['msg'] = "退款失败了。";
-          }
-        } else {
-          $result = [
-              'code' => '100',
-              'msg' => '未查询到支付订单。'
-          ];
-        }
-      }
-      if ($result['code'] == 200) {
-        $result['msg'] ='评价成功。 ';
-        $amount1 = $amount1 / 100;
-        $amount2 = $amount2 / 100;
-        if ($amount1 > 0) $result['msg'] .= $amount1 . " 元支付给信主[" . $vote_news_nickname . ']。';
-        if ($amount2 > 0) $result['msg'] .= $amount2 . " 元退款到您的原支付渠道。";
-      }
-      return response()->json($result);
-    } else if ($this->requestData['type'] == 'answer') {
-      //==============================================
-      //======= 评价Answer
-      //==============================================
-      $param = $this->returnUser();
-      $param['type'] = $this->requestData['type'];
-      $param['vote'] = $this->requestData['vote'];
-      $param['vote_id'] = $this->requestData['id'];
-      $result = Vote::create($param);
+        break;
+    }
+    $amount1 = floor($amount1);
+    if ($amount1 >= 100) {
 
-      $result = ['code' => 200];
-      $_where = ['type' => 'answer', 'pay_id' => $this->requestData['id'], 'pay_status' => 'PAY_SUCCESS'];
-      Log::info($_where);
-      if (!(Orders::where($_where)->first())) {
+      $app = $this->return_app();
+      $merchantPay = $app->merchant_pay;
+      $content = mb_substr($model["content"],0,4);
+      $create_time = date("Y-m-d H:i:s",$model["created_at"]);
+      $type = $this->requestData['type']=="news"?"现场":"问问";
+
+      $merchantPayData = [
+          'partner_trade_no' => str_random(16), //随机字符串作为订单号，跟红包和支付一个概念。
+          'openid' => $openid, //收款人的openid
+        // 'openid' => "o4utmv8LN_g8YyvX1CVV2qxD-3bI", //收款人的openid
+          'check_name' => 'NO_CHECK',  //文档中有三种校验实名的方法 NO_CHECK OPTION_CHECK FORCE_CHECK
+          'amount' => $amount1,  //单位为分
+          'desc' => $nickName . "购买了{$vote_nickname}于{$create_time}发布的（{$type}）{$content}...",
+          'spbill_create_ip' => $_SERVER['REMOTE_ADDR'], //发起交易的IP地址
+      ];
+
+      $pay_result = $merchantPay->send($merchantPayData);
+      if ($pay_result['result_code'] == 'FAIL') {
+        $result['msg'] = $pay_result['err_code_des'];
+      } else {
+        $result['msg'] = "评价成功，相应款项已经支付给提供者。";
+      }
+
+      Log::info($pay_result);
+
+    }
+
+    $amount2 = floor($amount2);
+    if ($amount2 > 0) {
+      // 需要退款时，要先获取原订单的id号，同时自己生成一个退款单号，同时要先查询是否已经发起过退款操作
+      $out_trade_no = Orders::where(['type' => $this->requestData['type'], 'pay_id' => $this->requestData['id'], 'pay_status' => 'PAY_SUCCESS'])->first();
+      if ($out_trade_no) {
+        $out_trade_no = $out_trade_no->toArray()['out_trade_no'];
+
+        $app = $this->return_app();
+        $payment = $app->payment;
+
+        $payment->queryRefund($out_trade_no);
+
+        $out_refund_no = str_random(32);
+        $_result = $payment->refund($out_trade_no, $out_refund_no, $amount, $amount2);
+
+        if ($_result['return_code'] != 'SUCCESS') {
+          $result['code'] = 100;
+          $result['msg'] = "退款失败了。";
+        }
+
+      } else {
         $result = [
             'code' => '100',
-            'msg' => '未购买对应内容，无法进行评价'
+            'msg' => '未查询到支付订单。'
         ];
-        return response()->json($result);
       }
-
-      $vote_select = intval($this->requestData['vote']);
-
-      $nickName = $this->returnUser()['nickname'];
-      $vote_question = Question::where(['id' => $this->requestData['q_id']])->get()->first()->toArray();
-      $amount = $vote_question['price'] * 100;
-      $vote_answer = Answer::where(['id' => $this->requestData['id']])->get()->first()->toArray();
-      $openid = $vote_answer['openid'];
-      $vote_news_nickname = $vote_answer['nickname'];
-      $amount1 = 0;
-      $amount2 = 0;
-      if ($vote_select == 2) {
-        // 付给提供者
-        $amount1 = 0.60 * $amount;
-        // 退款给购买者
-        $amount2 = 0.11 * $amount;
-      } else if ($vote_select == 3) {
-        $amount1 = $amount;
-      } else if ($vote_select == 1) {
-        $amount2 = 0.11 * $amount;
-      }
-
-      if ($amount1 >= 100) {
-        $app = $this->return_app();
-        $merchantPay = $app->merchant_pay;
-        $merchantPayData = [
-            'partner_trade_no' => str_random(16), //随机字符串作为订单号，跟红包和支付一个概念。
-            'openid' => $openid, //收款人的openid
-          // 'openid' => "o4utmv8LN_g8YyvX1CVV2qxD-3bI", //收款人的openid
-            'check_name' => 'NO_CHECK',  //文档中有三种校验实名的方法 NO_CHECK OPTION_CHECK FORCE_CHECK
-            'amount' => $amount1,  //单位为分
-            'desc' => $nickName . '购买了您的内容[丫丫传批量付款]',
-            'spbill_create_ip' => $_SERVER['REMOTE_ADDR'], //发起交易的IP地址
-        ];
-        Log::info($merchantPayData);
-        $pay_result = $merchantPay->send($merchantPayData);
-        //$pay_result = ['result_code' => "SUCCESS"];
-        if ($pay_result['result_code'] == 'FAIL') {
-          $result['msg'] = $pay_result['err_code_des'];
-        } else {
-          $result['msg'] = "评价成功，相应款项已经支付给提供者。";
-        }
-        Log::info($pay_result);
-        // return response()->json($result);
-      } else {
-      }
-
-      if ($amount2 > 0) {
-        // 需要退款时，要先获取原订单的id号，同时自己生成一个退款单号，同时要先查询是否已经发起过退款操作
-        $out_trade_no = Orders::where(['type' => 'answer', 'pay_id' => $this->requestData['id'], 'pay_status' => 'PAY_SUCCESS'])->first();
-        if ($out_trade_no) {
-          $out_trade_no = $out_trade_no->toArray()['out_trade_no'];
-          $app = $this->return_app();
-          $payment = $app->payment;
-          $_result = $payment->queryRefund($out_trade_no);
-          Log::info($_result);
-          $out_refund_no = str_random(32);
-          $_result = $payment->refund($out_trade_no, $out_refund_no, $amount, $amount2);
-          Log::info($_result);
-          if ($_result['return_code'] == 'SUCCESS') {
-          } else {
-            $result['code'] = 100;
-            $result['msg'] = "退款失败了。";
-          }
-        } else {
-          $result = [
-              'code' => '100',
-              'msg' => '未查询到支付订单。'
-          ];
-        }
-      }
-      Log::info($amount1 . '----' . $amount2);
-      if ($result['code'] == 200) {
-        $result['msg'] ='评价成功。 ';
-        $amount1 = $amount1 / 100;
-        $amount2 = $amount2 / 100;
-        if ($amount1 > 0) $result['msg'] .= $amount1 . " 元支付给信主[" . $vote_news_nickname . ']。';
-        if ($amount2 > 0) $result['msg'] .= $amount2 . " 元退款到您的原支付渠道。";
-      }
-      return response()->json($result);
     }
-    return $this->output($result);
+    if ($result['code'] == 200) {
+      //评价成功给用户发送消息
+      $this->requestData["openid"] = $openid;
+      $this->requestData["event_type"] = isset($model["event_type"]) ? $model["event_type"] : "";
+      $this->requestData["created_at"] = $model["created_at"];
+      $this->requestData["content"] = $model["content"];
+
+      $param = ServiceNews::getParamForVote($this->requestData);
+      ServiceNews::sendMessage($this->return_app(),$param);
+
+      $result['msg'] = '评价成功。 ';
+      $amount1 = $amount1 / 100;
+      $amount2 = $amount2 / 100;
+      if ($amount1 > 0) $result['msg'] .= $amount1 . " 元支付给信主[" . $vote_nickname . ']。';
+      if ($amount2 > 0) $result['msg'] .= $amount2 . " 元退款到您的原支付渠道。";
+    }
+
+    return response()->json($result);
   }
 
   /**
@@ -513,7 +431,22 @@ class NewsController extends Controller
     $this->requestData['total_fee'] = ($this->requestData['total_fee'] <= 10000) ? $this->requestData['total_fee'] : 10000;
     $this->requestData['file_number'] = json_encode($this->requestData['file_number']);
     $result = Answer::create($this->requestData + $this->returnUser());
+    //duan
+    if($result){
 
+      $question = Question::find($this->requestData["q_id"]);
+      if(null!==$question && $question->openid != $this->returnUser()["openid"]){
+        $param["nickname"] = $question->nickname;
+        $param["vote_id"] = $this->requestData["q_id"];
+        $param["created_at"] = date("Y-m-d",strtotime($question->created_at));
+        $param["openid"] = $question->openid;
+        $param["content"] = mb_substr($this->requestData["cotnent"],0,20, 'utf-8')."...";
+
+        $data = ServiceNews::getParamForAnswer($param);
+        ServiceNews::sendMessage($this->return_app(),$data);
+      }
+      //duan
+    }
     return $this->output($result);
   }
 
@@ -528,11 +461,11 @@ class NewsController extends Controller
     if ($file->isValid()) {
 
       $guid = uniqid().time();
-
       $ext2 = $ext = strtolower($file->guessExtension());
       if(isset($_FILES["file"]['name'])){
         $ext2 = strtolower(pathinfo($_FILES["file"]['name'],PATHINFO_EXTENSION));
       }
+
       $ext = ($ext!=$ext2&&$ext2!="") ? $ext2 : $ext;
       $file_name =$guid . '.' . $ext;
 
@@ -678,7 +611,20 @@ class NewsController extends Controller
       }
 
       // $list[$k]['video_count'] = 2;
-      $list[$k]['can_payback'] = OrderPayBack::where(['type'=>$type, 'vote_id'=>$list[$k]['id']])->first() ? 0 : 1;
+      //失实证明 duan
+      $payback = OrderPayBack::where(['type'=>$type, 'vote_id'=>$list[$k]['id']])->first();
+      if(null!=$payback){
+        $list[$k]['can_payback'] = 0;
+        $detail = $payback->toArray();
+        if(!empty($detail["files"])){
+          $detail["files"] = explode(",",$detail["files"]);
+        }
+        $list[$k]['payback_detail'] = $detail;
+
+      }else{
+        $list[$k]['can_payback'] = 1;
+        $list[$k]['payback_detail'] = [];
+      }
 
       $list[$k]['thumb'] = $v['thumb'] ? explode(',', $v['thumb']) : 0;
       //if (count($list[$k]['thumb_des']) == 0) $list[$k]['thumb_des'] = 0;
@@ -687,7 +633,14 @@ class NewsController extends Controller
       $list[$k]['vote'] = Vote::where(['openid' => $_SESSION['wechat_user']['id'] , 'type' => $type,'vote_id' => $v['id']])->pluck('vote')->toArray()[0];
 
 
-      $is_payed = $this->_check_pay($v['id'], $type);
+      $order = $this->_check_pay($v['id'], $type);
+      if(null!==$order){
+        $list[$k]['pay_date'] = $order["pay_date"];
+        $is_payed = 1;
+      }else{
+        $list[$k]['pay_date'] = "";
+        $is_payed = 0;
+      }
 
       if($type =="news" && !$v['price']) {
         $is_payed = true;
@@ -704,7 +657,6 @@ class NewsController extends Controller
 
       $list[$k] += $this->return_useful_data($v['id'], $type);
     }
-    // Log::info($list);
     return $list;
   }
 
@@ -722,7 +674,9 @@ class NewsController extends Controller
         'pay_status' => 'PAY_SUCCESS'
     ];
 
-    return NewsOrder::where($where)->first() ? 1 : 0;
+    $order = NewsOrder::where($where)->first();
+
+    return  $order;
   }
 
   /**
@@ -779,13 +733,13 @@ class NewsController extends Controller
 
       $_SESSION['wechat_user'] = $user->toArray();
 
-      $targetUrl = empty($_SESSION['target_url']) ? '/' : $_SESSION['target_url'];
+      $targetUrl = empty($_SESSION['target_url']) ?  "http://" . $_SERVER['HTTP_HOST'] . "/information_list.html" : $_SESSION['target_url'];
 
       return redirect($targetUrl);
     }catch(\Exception $e){
       $this->do_oauth();
 
-      $targetUrl = empty($_SESSION['target_url']) ? '/' : $_SESSION['target_url'];
+      $targetUrl = empty($_SESSION['target_url']) ? "http://" . $_SERVER['HTTP_HOST'] . "/information_list.html" : $_SESSION['target_url'];
 
       return redirect($targetUrl);
     }
@@ -796,6 +750,7 @@ class NewsController extends Controller
         'vote_id' => $this->requestData['vote_id'],
         'type'    => $this->requestData['type'],
         'openid'  => $_SESSION['wechat_user']['id'],
+        'nickname'=> $_SESSION['wechat_user']['nickname'],//duan
     ];
     $params = [
         'files' => $this->requestData['files'],
@@ -986,6 +941,22 @@ class NewsController extends Controller
         ];
       }
     }
+    return response()->json($result);
+  }
+
+  /**
+   * 分享到朋友/圈
+   * @return \Illuminate\Http\JsonResponse
+   */
+  public function postShare(){
+    $url = $this->requestData['url'];
+
+    $app = $this->return_app();
+    $js = $app->js;
+    $js->setUrl($url);
+    $apis = array('onMenuShareAppMessage', 'onMenuShareTimeline');
+    $result = $js->config($apis, $debug = false, $beta = false,false);
+
     return response()->json($result);
   }
 }

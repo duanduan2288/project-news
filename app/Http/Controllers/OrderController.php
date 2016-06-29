@@ -43,14 +43,18 @@ class OrderController extends Controller
 
         $response = $app->payment->handleNotify(function ($notify, $successful) use($app)
         {
-            NewsOrder::where('out_trade_no', $notify->out_trade_no)->update([
-                'pay_status' => 'PAY_SUCCESS'
-            ]);
+            if($successful){
+                NewsOrder::where('out_trade_no', $notify->out_trade_no)->update([
+                    'pay_status'    =>  'PAY_SUCCESS',
+                    'pay_date'      =>  date("Y-m-d H:i:s")
+                ]);
 
-            WeChatPayNotify::create(json_decode($notify,true));
-            //发送消息给管理员
-            $param = ServiceNews::getParamForPay($notify->out_trade_no);
-            ServiceNews::sendMessage($app,$param);
+                WeChatPayNotify::create(json_decode($notify,true));
+                //发送消息给管理员
+                $param = ServiceNews::getParamForPay($notify->out_trade_no);
+                ServiceNews::sendMessage($app,$param);
+            }
+
             return true;
         });
 
@@ -84,6 +88,14 @@ class OrderController extends Controller
         return new Order($attributes);
     }
 
+    public function getDownoadBill(){
+        $app = $this->return_app();
+        $bill = $app->payment->downloadBill('20160622'); // type: ALL
+        //$bill = iconv("GBK","UTF8",$bill);
+        $bill = iconv("UTF-8","GB2312//IGNORE",$bill);
+        // 保存为文件
+        file_put_contents(public_path().'/bill-20160622.csv', $bill);
+    }
     /**
      * 生成唯一订单号
      *

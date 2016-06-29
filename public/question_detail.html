@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" style="font-size: 42.66666666666667px;">
-
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?45d3a5f37d3fa24dbd75e9a6477f1019";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
 <head>
     <meta charset="UTF-8">
     <title>丫丫现场问问</title>
@@ -11,6 +19,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
     <meta name="viewport" content="width=device-width,  initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <script src="//o9a5hotpt.qnssl.com/wxStat-1.0.5.min.js"></script>
     <script>
         (function (c, a) {
             var d = "orientationchange" in a ? "orientationchange" : "resize",
@@ -31,6 +40,7 @@
     <link rel="stylesheet" type="text/css" href="./css/you_page_question_detail.css"></link>
     <link rel="stylesheet" href="./css/basscss.min.css" media="all" title="no title" charset="utf-8">
     <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
     <style media="all">
       .ssz-auth-text {
         font-size: .25rem;
@@ -55,6 +65,25 @@
 
     <link rel="stylesheet" href="./css/colors.css" media="screen" title="no title" charset="utf-8">
     <link rel="stylesheet" href="./css/custom.css">
+    <script>
+      function getFilesDisplayText(obj) {
+        var arr = [];
+        var fields = [
+          {key: 'qr_length', name: '文字'},
+          {key: 'image_count', name: '图片', unit: '张'},
+          {key: 'vedio_count', name: '视频'},
+          {key: 'voice_count', name: '音频'},
+          {key: 'txt_count', name: '文本文件'},
+          {key: 'other_count', name: '其他文件'}
+        ];
+        for (var i in fields) {
+          if (obj[fields[i].key] && parseInt(obj[fields[i].key]) > 0) {
+            arr.push(fields[i].name + obj[fields[i].key] + (fields[i].unit || '个'));
+          }
+        }
+        return arr.length > 0 ?  '下面有' + arr.join('，') + '。' : '';
+      }
+    </script>
 </head>
 
 <body>
@@ -62,8 +91,8 @@
     <p class="tip">数据加载中..</p>
 </div>
 <div class="tab_fixed">
-  <a href="information_list.html">现场</a>
-  <a href="question_list.html" class="active">问问</a>
+  <a href="information_pub.html">现场</a>
+  <a href="javascript:void(0);" class="active">问问</a>
 </div>
 <div class="footer_wrap" style="padding-bottom: 3rem;">
   <div class="share_wrap">
@@ -77,14 +106,18 @@
     <p>超过100元打赏的现场信息，假如有容易判断的明确证据证明其内容严重失实，在付费后24小时内可以通过本平台公众号“丫丫传”将问题和回答失实信息上传，假如平台在当时鉴定能力下能较容易判断证明的准确性，将返还80%给付费者</p>
   </div>
 </div>
-<div class="share_modal" id="intro_page">
+<div class="share_modal page" id="intro_page">
   <div class="close">
     &times;
   </div>
   <div class="content">
-    <p>
-      会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江
-    </p>
+    <div class="chapter">
+      <div class="detail">
+        <p style="margin-bottom: .3rem;">丫丫现场的问问是想了解某个现场的人打赏提问某个现场信息，有人看到提问回答后，平台会在提问者<span class="orange">申请小丫鉴定</span>的前提下对信息质量进行审核，审核结果对外公示，提问者或有需求的人进行支付之后可以根据情况进行不同程度的评价，并产生相应的实时退款。</p>
+        <p style="margin-bottom: .3rem;">丫丫现场是传递各种现场信息的微信应用平台，现场无处不在，天天都有精彩，分享你的现场，有人在需要它！</p>
+        <p class="orange">（目前系统对信息提供者只支持1元及以上的支付）</p>
+      </div>
+    </div>
   </div>
 </div>
 <div class="share_modal" id="share_page">
@@ -103,12 +136,14 @@
         <form onsubmit="return false" id="pub_form">
           <div class="form-group textarea">
             <h2>现场信息显示部分<span class="require_flag">*</span></h2>
-            <textarea id="content" name="content" placeholder="此部分内容对外显示，您可以大致写下您要发布的现场内容，引起大家的注意（0-200字）"></textarea>
+            <textarea id="content" name="content" placeholder="此部分内容对外显示，您可以大致写下您要发布的现场内容，引起大家的注意"></textarea>
+            <div class="input_hint">300</div>
           </div>
           <div class="form-group textarea">
             <h2>现场信息支付部分<span class="require_flag">*</span></h2>
             <textarea id="qrcode_content" name="qrcode_content"
-                          placeholder="此部分内容对外隐藏，需支付才能显示，您需要给力填写，才能得到读者的好评（0-2000字）"></textarea>
+                          placeholder="此部分内容对外隐藏，需支付才能显示，您需要给力填写，才能得到读者的好评"></textarea>
+            <div class="input_hint">2000</div>
           </div>
           <div class="form-group">
               <h2>
@@ -124,7 +159,7 @@
               </h2>
               <p id="ssz-limit-2" class="require_flag" style="margin-top: 4px;"></p>
               <div class="hide_upload_wrap">
-                  <div class="upload_btn">+ <input uploadNum="" data-max-image="10" data-max-video="3" type="file" id="hide_file_input"></div>
+                  <div class="upload_btn">+ <input data-uploadnum="0" data-maxnum="30" type="file" id="hide_file_input" data-value="ssz_news"></div>
               </div>
           </div>
           <div class="form-group evaluate">
@@ -157,7 +192,7 @@
                   <? if (answer.is_me) { ?>
                     <span data-id="<?=answer.id?>">
                     <? if (answer.is_display == 1) { ?>
-                    <span href="#" class="ssz-fake-delete" style="width: auto;margin-right: .2rem;" onclick="fakeDelete(this)" data-value="0" >改为仅对问主可见</span>
+                    <span href="#" class="ssz-fake-delete" style="width: auto;margin-right: .2rem;" onclick="fakeDelete(this)" data-value="0" >改为仅对问主私密</span>
                     <? } else { ?>
                     <span href="#" class="ssz-fake-delete" style="width: auto;margin-right: .2rem;" onclick="fakeDelete(this)" data-value="1" >改为对所有人可见</span>
                     <? } ?>
@@ -170,12 +205,32 @@
                 <div class="ssz-answer-1">
                 <?=answer.content ?>
               </div>
-                <div class="other_wrap mt0">
-                    <? if(answer.thumb_des){ ?>
-                    <p class="other_desc">
-                        <?=answer.thumb_des ?>
-                    </p>
+                <? if(!answer.is_admin && !answer.is_open && !answer.is_me) { ?>
+                  <div class="other_wrap mt0">
+                      <? if(answer.thumb && answer.thumb.length){ ?>
+                      <div class="other_img_wrap clearfix col-12">
+                          <? answer.thumb && answer.thumb.forEach(function(thumb){?>
+                          <!--//duan-->
+                          <?=thumb ?>
+                            <!--<a class="col-4 block left img_item" href="<?=thumb ?>"><img src="<?=thumb ?>"/></a>-->
+                          <? }); ?>
+                      </div>
+                      <? } ?>
+                  </div>
+                  <div class="count_info">
+                    <?=getFilesDisplayText(answer) ?>
+                  </div>
+                  <div class="see_btn center" style="background: #aaa;">支付打开</div>
+                <? } ?>
+                <? if(answer.is_admin || answer.is_open || answer.is_me){ ?>
+                <div class="hide_info">
+                    <? if(answer.qrcode_content){ ?>
+                        <p class="hide_txt">
+                          <?=answer.qrcode_content ?>
+                        </p>
                     <? } ?>
+                </div>
+                <div class="other_wrap mt0">
                     <? if(answer.thumb && answer.thumb.length){ ?>
                     <div class="other_img_wrap clearfix col-12">
                         <? answer.thumb && answer.thumb.forEach(function(thumb){?>
@@ -186,23 +241,7 @@
                     </div>
                     <? } ?>
                 </div>
-                <? if(!answer.is_admin && !answer.is_open && !answer.is_me) { ?>
-                  <div class="see_btn center" style="background: #aaa;">支付打开</div>
-                  <span class="">文字<?=answer.qr_length ?>个
-                    ，图片<?=answer.image_count ?>张
-                    ,视频<?=answer.vedio_count ?>个
-                    ,音频<?=answer.voice_count ?>个
-                    ，文本文件<?=answer.txt_count ?>个
-                    ，其他文件<?=answer.other_count ?>个
-                  </span>
-                <? } ?>
-                <? if(answer.is_admin || answer.is_open || answer.is_me){ ?>
                 <div class="hide_info">
-                    <? if(answer.qrcode_content){ ?>
-                        <p class="hide_txt">
-                          <?=answer.qrcode_content ?>
-                        </p>
-                    <? } ?>
                     <? if(answer.content_img && answer.content_img.length){ ?>
                     <div class="hide_img_wrap clearfix col-12">
                         <? answer.content_img && answer.content_img.forEach(function(content_img){?>
@@ -260,16 +299,17 @@
                 <? } ?>
                 <div class="block mx-auto">
                   <p class="center">完全扯淡</p>
-                  <? if (answer.confirm_status == 0 || answer.confirm_status == 1) { ?>
-                  <p class="center">70%退回，30%给丫丫公益</p>
+                  <? if (answer.confirm_status == 0) { ?>
+                    <p class="center">100%退回</p>
+                  <!--<p class="center">70%退回，剩余给丫丫公益</p>-->
                   <? } else if (answer.confirm_status == 2){ ?>
                   <p id="cannot-click" class="center">此为很赞信息，不能进行此种评价!</p>
                   <? } else if (answer.confirm_status == 3){ ?>
                   <p class="center">50%退回，15%给提供者，剩余给丫丫公益</p>
-                  <? } else if (answer.confirm_status == 4 || answer.confirm_status == 5){ ?>
-                  <p class="center">50%退回，5%给提供者，45%给丫丫公益</p>
+                  <? } else if (answer.confirm_status == 1 || answer.confirm_status == 4 || answer.confirm_status == 5){ ?>
+                  <p class="center">50%退回，5%给提供者，剩余给丫丫公益</p>
                   <? } else if (answer.confirm_status == 6){ ?>
-                  <p class="center">50%退回，50%给丫丫公益</p>
+                  <p class="center">50%退回，剩余给丫丫公益</p>
                   <? } ?>
                 </div>
               </div>
@@ -391,7 +431,7 @@ function fakeDelete(ele) {
   $.post('/news/fakedelete', {id: id, is_display: value, type: 'answer'}, function(data) {
     if (data.code == 200) {
       $(ele).data('value', 0);
-      $(ele).html('改为仅对问主可见');
+      $(ele).html('改为仅对问主私密');
     } else if (data.code == 201) {
       $(ele).data('value', 1);
       $(ele).html('改为对所有人可见');
@@ -408,7 +448,6 @@ function drop(ele) {
       $(ele).html(data.msg);
     }
   });
-  return true;
 }
 function select(ele) {
   var id = $(ele).parent().attr('data-id');
@@ -421,28 +460,30 @@ function select(ele) {
   return false;
 };
 function userDelete(ele) {
-  var id = $(ele).attr('data-id');
-  $.post('/news/delete', {id: id, value: 1, type: 'question'}, function(data) {
-    console.log(data);
-    if (data.code == 200) {
-      location.href = "question_list.html";
-    } else {
-      alert(data.msg);
-    }
-  });
-  return true;
+  if (confirm('确定删除吗？')) {
+    var id = $(ele).attr('data-id');
+    $.post('/news/delete', {id: id, value: 1, type: 'question'}, function(data) {
+      console.log(data);
+      if (data.code == 200) {
+        location.href = "question_list.html";
+      } else {
+        alert(data.msg);
+      }
+    });
+  }
 }
 function deleteAnswer(ele) {
-  var id = $(ele).attr('data-id');
-  $.post('/news/delete', {id: id, value: 1, type: 'answer'}, function(data) {
-    console.log(data);
-    if (data.code == 200) {
-      window.location.reload();
-    } else {
-      alert(data.msg);
-    }
-  });
-  return true;
+  if (confirm('确定删除吗？')) {
+    var id = $(ele).attr('data-id');
+    $.post('/news/delete', {id: id, value: 1, type: 'answer'}, function(data) {
+      console.log(data);
+      if (data.code == 200) {
+        window.location.reload();
+      } else {
+        alert(data.msg);
+      }
+    });
+  }
 }
 </script>
 </body>

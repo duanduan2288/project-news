@@ -200,6 +200,19 @@ wml.define("you/page/question_pub", function (require, exports) {
   $('.event_type_wrap').on('click', '.price_item', function (event) {
     $(this).addClass('act').siblings().removeClass('act')
   })
+  function onTextareaInput($textarea, limit) {
+    var len = $textarea.val().length;
+    var $hint = $textarea.siblings('.input_hint');
+    if (len > limit) {
+      $hint.addClass('red');
+    } else {
+      $hint.removeClass('red');
+    }
+    $hint.text(limit-len);
+  }
+  $('#content').on('input', function(){
+    onTextareaInput($(this), 500);
+  });
 
   $('.pub_btn').on('click', function (event) {
     if (this.isSub) return;
@@ -209,15 +222,15 @@ wml.define("you/page/question_pub", function (require, exports) {
       alert('请输入提问信息');
       $('[name=content]').focus();
       return;
-    } else if (content.length >= 500) {
+    } else if (content.length > 500) {
       alert('问问文字限制500个！');
       $('[name=content]').focus();
       return false;
     }
     var $priceAct = $('.price_wrap').find('.act')
     price = $priceAct.is('[data-value]') ? $priceAct.attr('data-value') : $priceAct.val()
-    if (price < 5) {
-      alert('最低价格5元');
+    if (price < 2) {
+      alert('最低价格2元');
       return;
     }
     if ($('.event_type_wrap .price_item.act').length == 0) {

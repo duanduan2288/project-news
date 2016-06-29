@@ -407,8 +407,6 @@ wml.define("you/page/information_detail", function (require, exports) {
     return ret;
   }
 
-
-
   $('.main_container').on('click', '.confirm_wrap .btn', function () {
     var v = $('.confirm_wrap [checked]').val();
     $.ajax({
@@ -434,6 +432,16 @@ wml.define("you/page/information_detail", function (require, exports) {
       }
     });
   });
+  function onTextareaInput($textarea, limit) {
+    var len = $textarea.val().length;
+    var $hint = $textarea.siblings('.input_hint');
+    if (len > limit) {
+      $hint.addClass('red');
+    } else {
+      $hint.removeClass('red');
+    }
+    $hint.text(limit-len);
+  }
 
 //init
   $.ajax({
@@ -476,7 +484,7 @@ wml.define("you/page/information_detail", function (require, exports) {
         if (item.confirm_status != 0) {
           var a = ['', '小丫鉴定中', '小丫觉得很赞', '小丫觉得有效', '小丫不确定', '小丫部分不确定', '小丫觉得无效'];
           $('.confirm_status_tip').html('<span style="color:orange;">丫</span><span style="color:#48abff;">丫</span>现场信息审核：本条信息'+ a[item.confirm_status]);
-        } else if (item.is_me) {
+        } else if (item.is_me && item.price > 0) {
           $('.confirm_status_tip').text('申请小丫鉴定').addClass('ssz-btn');
           $('.confirm_status_tip').on('click', function () {
             if (confirm('确定申请小丫鉴定吗？')) {
@@ -510,13 +518,8 @@ wml.define("you/page/information_detail", function (require, exports) {
           });
         }
 
-        //add by duan
-        $('#ssz-description').on('input', function (event) {
-          var _l = $(this).val().length;
-          if (_l > 500) {
-            $(this).val($(this).val().substr(0, 500));
-            $('#ssz-limit-1').html("写的也太多了吧，这里请不要超过500字！");//modify duan
-          }
+        $('#ssz-description').on('input', function(){
+          onTextareaInput($(this), 500);
         });
 
         // 提交
@@ -564,18 +567,22 @@ wml.define("you/page/information_detail", function (require, exports) {
             }
             , success: function (res) {
               if (res.code == 200) {
+                alert('申请信息失实已提交，请等待审核...');
+                location.reload();
                 // location.href = gotoLink.inforDetail(res.data.id)
                 // alert(res.msg);
+              } else {
+                alert('提交失败');
               }
             }
             , error: function () {
-              alert('系统错误');
+              alert('提交失败');
             }
             , complete: function () {
               _this.isSub = false;
-              _this.innerHTML = '申请信息失实已提交，请等待审核...';
+              /*_this.innerHTML = '申请信息失实已提交，请等待审核...';
               $(_this).css('background-color', '#f8f7f7');
-              $(_this).css('color', 'black');
+              $(_this).css('color', 'black');*/
             }
           })
         });
@@ -644,12 +651,12 @@ wml.define("you/page/information_detail", function (require, exports) {
               $item.remove();
               if (!uploading) {
                 $input.attr('uploadNum', parseInt($input.attr('uploadNum')) - 1);//duan
-                var type = $item.attr('type')
+                /*var type = $item.attr('type')
                 if (type == 'video') {
                   $input.attr('uploadVideoNum', parseInt($input.attr('uploadVideoNum')) - 1);
                 } else {
                   $input.attr('uploadImageNum', parseInt($input.attr('uploadImageNum')) - 1);
-                }
+                }*/
               }
               ajax && ajax.abort()
             }
@@ -709,6 +716,7 @@ wml.define("you/page/information_detail", function (require, exports) {
         $('#intro_page .close').click(function(){
           $('#intro_page').hide();
         });
+        wxShareConfig(item);
       } else {
         loadErr(res.msg)
       }
@@ -724,5 +732,35 @@ wml.define("you/page/information_detail", function (require, exports) {
     msg = msg || '获取数据失败'
     $('.tip').html(msg)
   }
+  function wxShareConfig(item) {
+    var price = item.price > 0 ? '开价'+item.price+'元' : '公开';
+    var title = item.nickname+'发布了'+price+'的现场'+item.event_type+'信息，快来看啊';
+    var shareConfig = {
+      title: title,
+      imgUrl: item.avatar || window.location.origin+'/img/share_avatar.png'
+    };
+    $.ajax({
+      type: "POST",
+      url: "/news/share",
+      dataType: "json",
+      data: {
+        url: location.href.split('#')[0]
+      },
+      success: function(res){
+        wx.config(res);
+        wx.ready(function(){
+          wx.onMenuShareAppMessage(shareConfig);
+          wx.onMenuShareTimeline(shareConfig);
+        });
+        wx.error(function(){
+          console.log('jssdk config error');
+        });
+      },
+      error: function(){
+        console.log('获取jssdk配置失败');
+      }
+    });
+  }
+
 });
 wml.run("you/page/information_detail");
