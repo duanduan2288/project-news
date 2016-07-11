@@ -130,6 +130,7 @@ class ServiceNews
 		$nickname = ServiceUser::getNickname();
 		$senddata = array(
 				"first"    => "丫丫即时通知，{$nickname}已经回答了你的丫丫现场提问了!赶紧看一下",
+
 				"keyword1" => $param["nickname"],
 				"keyword2" => $param["created_at"],
 				"remark"   => $param["content"],

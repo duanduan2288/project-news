@@ -121,6 +121,7 @@ class Controller extends BaseController
     {
         $this->target_url = $target_url;
         if($type=="info"){
+            Log::error($type);
             return $this->do_oauth();
         }else{
             return $this->do_base_oauth();
