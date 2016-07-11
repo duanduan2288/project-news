@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" style="font-size: 42.66666666666667px;">
-
+<script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "//hm.baidu.com/hm.js?45d3a5f37d3fa24dbd75e9a6477f1019";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+</script>
 <head>
   <meta charset="UTF-8">
   <title>丫丫现场信息</title>
@@ -11,6 +19,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
   <meta name="viewport" content="width=device-width,  initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+  <script src="//o9a5hotpt.qnssl.com/wxStat-1.0.5.min.js"></script>
   <script>
   (function (c, a) {
     var d = "orientationchange" in a ? "orientationchange" : "resize",
@@ -31,12 +40,14 @@
   <link href="./css/basscss.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="./css/you_page_information_detail.css"></link>
   <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
+  <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
   <style media="screen">
   #ssz-title {
     margin-top: .1rem;
   }
   #ssz-description {
-    border: 2px solid #385c8b;
+    border: none;
+    border-bottom: .03rem solid #5f79af;
     box-sizing: border-box;
     padding: .1rem;
     margin-top: .1rem;
@@ -55,6 +66,43 @@
   <link rel="stylesheet" href="./css/colors.min.css">
   <link rel="stylesheet" href="./css/added.css">
   <link rel="stylesheet" href="./css/custom.css">
+  <script>
+    function getFilesDisplayText(obj) {
+      var arr = [];
+      var fields = [
+        {key: 'qr_length', name: '文字'},
+        {key: 'image_count', name: '图片', unit: '张'},
+        {key: 'vedio_count', name: '视频'},
+        {key: 'voice_count', name: '音频'},
+        {key: 'txt_count', name: '文本文件'},
+        {key: 'other_count', name: '其他文件'}
+      ];
+      for (var i in fields) {
+        if (obj[fields[i].key] && parseInt(obj[fields[i].key]) > 0) {
+          arr.push(fields[i].name + obj[fields[i].key] + (fields[i].unit || '个'));
+        }
+      }
+      return arr.length > 0 ?  '下面有' + arr.join('，') + '。' : '';
+    }
+    function showSum(obj) {
+      var fields = ['image_count', 'vedio_count', 'voice_count', 'txt_count', 'other_count'];
+      for (var i in fields) {
+        if (parseInt(obj[fields[i]]) > 0) {
+          return true;
+        }
+      }
+      return false;
+    }
+    function hasPayback(obj) {
+      return obj.payback_detail && !$.isArray(obj.payback_detail) && obj.payback_detail.openid;
+    }
+    function isPaybackOverdue(obj) {
+      if (!obj.pay_date) return true;
+      var period = 24*3600*1000;
+      if (new Date().getTime() - new Date(obj.pay_date).getTime() >= period) return true;
+      return false;
+    }
+  </script>
 </head>
 
 <body>
@@ -73,17 +121,21 @@
     </div>
   </div>
   <div class="tab_fixed show_after_loaded">
-    <a href="information_list.html" class="active">现场</a>
-    <a href="question_list.html">问问</a>
+    <a href="javascript:void(0);" class="active">现场</a>
+    <a href="question_pub.html">问问</a>
   </div>
-  <div class="share_modal" id="intro_page">
+  <div class="share_modal page" id="intro_page">
     <div class="close">
       &times;
     </div>
     <div class="content">
-      <p>
-        会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江宁会不会纠结很久很久很久基金计划今年南京江
-      </p>
+      <div class="chapter">
+        <div class="detail">
+          <p style="margin-bottom: .3rem;">丫丫现场的信息是经历某个现场的人发布的精彩现场信息，平台会在信主<span class="orange">申请小丫鉴定</span>的前提下对信息质量进行审核，审核结果对外公示，支付者支付之后可以根据情况进行不同程度的评价产生相应的实时退款。</p>
+          <p style="margin-bottom: .3rem;">丫丫现场是传递各种现场信息的微信应用平台，现场无处不在，天天都有精彩，分享你的现场，有人在需要它！</p>
+          <p class="orange">（目前系统对信息提供者只支持1元及以上的支付）</p>
+        </div>
+      </div>
     </div>
   </div>
   <div class="share_modal" id="share_page">
@@ -98,69 +150,35 @@
       <p class="con"><?=item.content ?></p>
       <? } ?>
       <? if(!item.is_me && !item.is_open){ ?>
+        <div class="hide_info">
+          <? if (item.thumb && item.thumb.length) { ?>
+          <p class="ssz-p-2 clearfix table">
+            <? item.thumb.forEach(function(img){ ?>
+            <? if (img.length) { ?>
+            <?=img ?>
+            <!--<a href="<?=img ?>" class="table col-4 mt20 center p0 img_item left">-->
+            <!--<span class="ssz-span table-cell align-middle overflow-hidden">-->
+            <!--<img class="mx-auto" src="<?=img ?>">-->
+            <!--</span>-->
+            <!--</a>-->
+            <? } ?>
+            <? }); ?>
+          </p>
+          <? } ?>
+        </div>
+        <div class="count_info">
+          <?=getFilesDisplayText(item) ?>
+        </div>
         <div class="open_btn">
           <img src="./img/pocket.png">
           支付<?=item.price ?>元打开
         </div>
-        <div class="count_info">
-          <ul class="list-reset py1">
-             <? if (item.qr_length) { ?>
-             <li><img class="ssz-icon" src="./img/text.png" /><?= item.qr_length ?></li>
-             <!--<li>文字<?= item.qr_length ?>个-->
-             <? } ?>
-             <? if (item.image_count) { ?>
-             <li><img class="ssz-icon" src="./img/image-icon.jpg" /><?=item.image_count ?></li>
-             <? } ?>
-             <? if (item.vedio_count) { ?>
-             <li><img class="ssz-icon" src="./img/video-icon.jpg" /><?=item.vedio_count ?></li>
-             <? } ?>
-            <? if (item.voice_count) { ?>
-            <li>音频<?=item.voice_count ?>个</li>
-            <? } ?>
-            <? if (item.txt_count) { ?>
-            <li>文本文件<?=item.txt_count ?>个</li>
-            <? } ?>
-            <? if (item.other_count) { ?>
-            <li>其他文件<?=item.other_count ?>个</li>
-            <? } ?>
-          </ul>
-        </div>
-      <div class="hide_info">
-        <? if (item.thumb && item.thumb.length) { ?>
-        <p class="ssz-p-2 clearfix table">
-          <? item.thumb.forEach(function(img){ ?>
-          <? if (img.length) { ?>
-          <?=img ?>
-          <!--<a href="<?=img ?>" class="table col-4 mt20 center p0 img_item left">-->
-          <!--<span class="ssz-span table-cell align-middle overflow-hidden">-->
-          <!--<img class="mx-auto" src="<?=img ?>">-->
-          <!--</span>-->
-          <!--</a>-->
-          <? } ?>
-          <? }); ?>
-        </p>
-        <? } ?>
-      </div>
         <input type="hidden" name="q_price" value="<?=item.price ?>">
         <? } else { ?>
           <div class="hide_info">
             <p class="mt20 ssz-p-1">
               <?=item.qrcode_content ?>
             </p>
-            <? if (item.content_img && item.content_img.length) { ?>
-            <p class="ssz-p-2 clearfix table">
-                <? item.content_img.forEach(function(img){ ?>
-                  <? if (img.length) { ?>
-                    <?=img ?>
-                    <!--<a href="<?=img ?>" class="table col-4 mt20 center p0 img_item left">-->
-                      <!--<span class="ssz-span table-cell align-middle overflow-hidden">-->
-                        <!--<img class="mx-auto" src="<?=img ?>">-->
-                      <!--</span>-->
-                    <!--</a>-->
-                  <? } ?>
-                <? }); ?>
-            </p>
-            <? } ?>
             <? if (item.thumb && item.thumb.length) { ?>
             <p class="ssz-p-2 clearfix table">
               <? item.thumb.forEach(function(img){ ?>
@@ -175,7 +193,27 @@
               <? }); ?>
             </p>
             <? } ?>
-            <p class="my1" style="color: #002060">共<?=item.sum?>个文件，请尽量将文件保存到本地观看。</p>
+            <? if (item.content_img && item.content_img.length) { ?>
+            <p class="ssz-p-2 clearfix table">
+                <? item.content_img.forEach(function(img){ ?>
+                  <? if (img.length) { ?>
+                    <?=img ?>
+                    <!--<a href="<?=img ?>" class="table col-4 mt20 center p0 img_item left">-->
+                      <!--<span class="ssz-span table-cell align-middle overflow-hidden">-->
+                        <!--<img class="mx-auto" src="<?=img ?>">-->
+                      <!--</span>-->
+                    <!--</a>-->
+                  <? } ?>
+                <? }); ?>
+            </p>
+            <? } ?>
+            <? if (item.is_delete == 0 && item.is_display == 1) {?>
+              <? if (showSum(item)) { ?>
+              <p class="my1" style="color: #999">共<?=item.sum?>个文件，请尽量将文件保存到本地观看。</p>
+              <? } ?>
+            <? } else { ?>
+              <p class="my1" style="color: #999;text-align: center;">此信息已被删除</p>
+            <? }?>
           </div>
           <? } ?>
             <? if (item.is_me || item.is_admin) { ?>
@@ -248,37 +286,75 @@
                     <? } ?>
                     <div class="block mx-auto">
                       <p class="center">完全扯淡</p>
-                      <? if (item.confirm_status == 0 || item.confirm_status == 1) { ?>
-                      <p class="center">70%退回，30%给丫丫公益</p>
+                      <? if (item.confirm_status == 0) { ?>
+                      <p class="center">100%退回</p>
+                      <!--<p class="center">70%退回，剩余给丫丫公益</p>-->
                       <? } else if (item.confirm_status == 2){ ?>
                       <p id="cannot-click" class="center">此为很赞信息，不能进行此种评价!</p>
                       <? } else if (item.confirm_status == 3){ ?>
                       <p class="center">50%退回，15%给提供者，剩余给丫丫公益</p>
-                      <? } else if (item.confirm_status == 4 || item.confirm_status == 5){ ?>
-                      <p class="center">50%退回，5%给提供者，45%给丫丫公益</p>
+                      <? } else if (item.confirm_status == 1 || item.confirm_status == 4 || item.confirm_status == 5){ ?>
+                      <p class="center">50%退回，5%给提供者，剩余给丫丫公益</p>
                       <? } else if (item.confirm_status == 6){ ?>
-                      <p class="center">50%退回，50%给丫丫公益</p>
+                      <p class="center">50%退回，剩余给丫丫公益</p>
                       <? } ?>
                     </div>
                   </div>
                 </div>
-                <? if (item.price >= 0.01 && item.vote_data_value == 1) { ?>
-                <div id="shishi-auth" style="display: none;">
-                  <div class="col-12 border-box">
-                    <p id="ssz-title">信息失实证明</p>
-                    <textarea class="col-12" style="height: 1.5rem;font-size: .3rem;" id="ssz-description" placeholder="超过100元的价值信息，假如有容易判断的明确证据证明内容严重失实，在付费后24小时内可以上传给平台，平台将返还80%给付费者"></textarea>
-                    <p id="ssz-limit-1" class="require_flag" style="margin-top: 4px;"></p>//duan
-                    <div class="other_upload_wrap">
-                      <div class="upload_btn">+ <input uploadImageNum="0" uploadVideoNum="0" data-max-image="2" data-max-video="1" type="file" id="other_file_input" name="file"></div>
+                <? if (item.price >= 1 && item.vote_data_value == 1) { ?>
+                  <? if (hasPayback(item)) { ?>
+                    <? if (!isPaybackOverdue(item)) { ?>
+                      <div id="shishi-auth" style="display: none;">
+                        <p id="ssz-title">信息失实证明</p>
+                        <div class="detail_con">
+                          <p class="con"><?=item.payback_detail.description ?></p>
+                          <div class="hide_info">
+                            <? if (item.payback_detail.files && item.payback_detail.files.length) { ?>
+                            <p class="ssz-p-2 clearfix table">
+                              <? item.payback_detail.files.forEach(function(img){ ?>
+                              <? if (img.length) { ?>
+                              <?=img ?>
+                              <? } ?>
+                              <? }); ?>
+                            </p>
+                            <? } ?>
+                          </div>
+                        </div>
+                        <div class="custom_pub_btn my1" id="cancel-btn">关闭</div>
+                      </div>
+                      <div class="shishi_btn_group">
+                        <div id="for_pub_btn" class="custom_pub_btn">信息失实证明</div>
+                        <p style="margin-top:.1rem;">您的信息已提交，后续如有需要通过公众号“丫丫传”进行沟通</p>
+                      </div>
+                    <? } else { ?>
+                      <div class="shishi_btn_group">
+                        <p style="margin-top:.1rem;">内容失实证明:您的信息已提交，后续如有需要通过公众号“丫丫传”进行沟通</p>
+                      </div>
+                    <? } ?>
+                  <? } else if (!isPaybackOverdue(item)) { ?>
+                    <div id="shishi-auth" style="display: none;">
+                      <div class="col-12 border-box">
+                        <p id="ssz-title">信息失实证明</p>
+                        <textarea class="col-12" style="height: 1.5rem;font-size: .3rem;" id="ssz-description" placeholder="超过100元的价值信息，假如有容易判断的明确证据证明内容严重失实，在付费后24小时内可以上传给平台，平台将返还80%给付费者"></textarea>
+                        <div class="input_hint">500</div>
+                        <p id="ssz-limit-1" class="require_flag" style="margin-top: 4px;"></p>
+                        <div class="other_upload_wrap">
+                          <div class="upload_btn">+ <input uploadNum="0" data-max-file="3" type="file" id="other_file_input" name="file"></div>
+                        </div>
+                      </div>
+                      <div id="ssz-submit" class="custom_pub_btn my1">提交信息失实证明</div>
+                      <div class="custom_pub_btn my1" id="cancel-btn">关闭</div>
                     </div>
-                  </div>
-                  <div id="ssz-submit" class="custom_pub_btn my1">提交信息失实证明</div>
-                  <div class="custom_pub_btn my1" id="cancel-btn">取消</div>
-                </div>
-                <div class="shishi_btn_group">
-                  <div id="for_pub_btn" class="custom_pub_btn">信息失实证明</div>
-                  <p style="margin-top:.1rem;">此功能对100元以上支付内容可用，请之前先关注公众号“丫丫传”以备接受消息</p>
-                </div>
+                    <div class="shishi_btn_group">
+                      <div id="for_pub_btn" class="custom_pub_btn">信息失实证明</div>
+                      <p style="margin-top:.1rem;">此功能对100元以上支付内容在支付24小时以内可用，请之前先关注公众号“丫丫传”以备接受消息</p>
+                    </div>
+                  <? } else { ?>
+                    <div class="shishi_btn_group">
+                      <div class="custom_pub_btn gray">信息失实证明</div>
+                      <p style="margin-top:.1rem;">支付超过100元在24小时之内此功能可用</p>
+                    </div>
+                  <? } ?>
                 <? } else { ?>
                   <div class="shishi_btn_group">
                     <div class="custom_pub_btn gray">信息失实证明</div>
@@ -287,6 +363,28 @@
                 <? } ?>
                 <? }?>
                 <?if(item.is_admin) {?>
+                  <? if (item.payback_detail && item.payback_detail.length > 0 ) { ?>
+                    <div id="shishi-auth">
+                      <p id="ssz-title">信息失实证明</p>
+                      <? item.payback_detail.forEach(function(v){ ?>
+                        <div class="detail_con">
+                          <p style="font-size: .24rem;"><?=item.nickname?> <span style="float:right;"><?=item.created_at.substr(0, 16)?></span></p>
+                          <p class="con"><?=v.description ?></p>
+                          <div class="hide_info">
+                            <? if (v.files && v.files.length) { ?>
+                            <p class="ssz-p-2 clearfix table">
+                              <? v.files.forEach(function(img){ ?>
+                              <? if (img.length) { ?>
+                              <?=img ?>
+                              <? } ?>
+                              <? }); ?>
+                            </p>
+                            <? } ?>
+                          </div>
+                        </div>
+                        <? }); ?>
+                    </div>
+                  <? } ?>
                   <div class="confirm_wrap">
                     <div class="opt_wrap" style="padding: 0;">
                       <? if (item.confirm_status == 2) { ?>

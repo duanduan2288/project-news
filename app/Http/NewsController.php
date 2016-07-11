@@ -5,13 +5,9 @@ use App\News;
 use App\Services\ServiceFile;
 use App\Services\ServiceNews;
 use App\Services\ServiceUpload;
-use App\Services\ServiceUser;
 use App\Vote;
-use App\WechatUser;
 use EasyWeChat\Message\Text;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
-use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use Requests;
 use App\Question;
 use App\Answer;
@@ -25,36 +21,17 @@ class NewsController extends Controller
 {
   public function getLogin()
   {
-    if (isset($_SESSION['wechat_user']['id']))
+    if ($_SESSION['wechat_user']['id'])
     {
-      $user = WechatUser::where("openid",$_SESSION['wechat_user']['id'])->first();
-      if(null!=$user){
-        $user_info = $user->toArray();
-        $user_info["id"] = $user_info["openid"];
-        $_SESSION['wechat_user'] = $user_info;
-        return redirect($_SERVER['HTTP_REFERER'] ?  : "/");
-      }else{
-        $this->get_userinfo($_SERVER['HTTP_REFERER'],"info");
-      }
-    }else{
-      $this->get_userinfo($_SERVER['HTTP_REFERER']);
+      return redirect($_SERVER['HTTP_REFERER'] ?  : "/");
     }
+
+    $this->get_userinfo($_SERVER['HTTP_REFERER']);
   }
 
   public function getUser()
   {
-    $return_info = "";
-    if (isset($_SESSION['wechat_user']['id']))
-    {
-      $user = WechatUser::where("openid",$_SESSION['wechat_user']['id'])->first();
-      if(null!=$user){
-        $user_info = $user->toArray();
-        $user_info["id"] = $user_info["openid"];
-        $_SESSION['wechat_user'] = $user_info;
-        $return_info = $user_info;
-      }
-    }
-    return $this->output($return_info);
+    return $this->output($_SESSION['wechat_user']);
   }
 
   public function getSearch()
@@ -79,6 +56,7 @@ class NewsController extends Controller
    * @return \Illuminate\Http\JsonResponse
    */
   public function getIndex() {
+    Log::error($_SESSION["wechat_user"]);
     if (Request::input('page')) {
       $pagesize = 10;
 
@@ -300,7 +278,7 @@ class NewsController extends Controller
 
     if (isset($create_data["q_id"])) unset($create_data["q_id"]);
 
-    $voteresult = Vote::create($this->returnUser() + $create_data);
+    Vote::create($this->returnUser() + $create_data);
     $result = ['code' => 200];
 
     $nickName = $this->returnUser()['nickname'];
@@ -374,8 +352,9 @@ class NewsController extends Controller
       $app = $this->return_app();
       $merchantPay = $app->merchant_pay;
       $content = mb_substr($model["content"],0,4);
-      $create_time = $model["created_at"];
+      $create_time = date("Y-m-d H:i:s",$model["created_at"]);
       $type = $this->requestData['type']=="news"?"现场":"问问";
+
       $merchantPayData = [
           'partner_trade_no' => str_random(16), //随机字符串作为订单号，跟红包和支付一个概念。
           'openid' => $openid, //收款人的openid
@@ -385,66 +364,36 @@ class NewsController extends Controller
           'desc' => $nickName . "购买了{$vote_nickname}于{$create_time}发布的（{$type}）{$content}...",
           'spbill_create_ip' => $_SERVER['REMOTE_ADDR'], //发起交易的IP地址
       ];
-      //保存支付记录
-      $businessresult = ServiceUser::insertBusinessRecord($merchantPayData,$voteresult["id"]);
-      try{
-        $pay_result = $merchantPay->send($merchantPayData);
-        if ($pay_result['result_code'] == 'FAIL') {
-          $result['msg'] = $pay_result['err_code_des'];
 
-          ServiceUser::updateBusinessPayStatus($businessresult["id"],"FAIL",$result['msg']);
-
-        } else {
-
-          $result['msg'] = "评价成功，相应款项已经支付给提供者。";
-          ServiceUser::updateBusinessPayStatus($businessresult["id"],"SUCCESS");
-        }
-
-        Log::info($pay_result);
-      }catch (\Exception $e){
-        $result['msg'] = "相应款项支付给提供者失败。";
-        ServiceUser::updateBusinessPayStatus($businessresult["id"],"FAIL",$e->getMessage());
-        Log::info($result);
+      $pay_result = $merchantPay->send($merchantPayData);
+      if ($pay_result['result_code'] == 'FAIL') {
+        $result['msg'] = $pay_result['err_code_des'];
+      } else {
+        $result['msg'] = "评价成功，相应款项已经支付给提供者。";
       }
+
+      Log::info($pay_result);
+
     }
 
     $amount2 = floor($amount2);
     if ($amount2 > 0) {
       // 需要退款时，要先获取原订单的id号，同时自己生成一个退款单号，同时要先查询是否已经发起过退款操作
       $out_trade_no = Orders::where(['type' => $this->requestData['type'], 'pay_id' => $this->requestData['id'], 'pay_status' => 'PAY_SUCCESS'])->first();
-
       if ($out_trade_no) {
-        $openid_pay = $out_trade_no->openid;
         $out_trade_no = $out_trade_no->toArray()['out_trade_no'];
+
+        $app = $this->return_app();
+        $payment = $app->payment;
+
+        $payment->queryRefund($out_trade_no);
+
         $out_refund_no = str_random(32);
-        $param = [
-            "out_trade_no"=>$out_trade_no,
-            "out_refund_no"=>$out_refund_no,
-            "amount"=>$amount,
-            "refund_amount"=>$amount2,
-            "openid"=>$openid_pay,
-            "vote_id"=>$voteresult["id"],
-            "created"=>date("Y-m-d H:i:s")
-        ];
-        $recordresult = ServiceUser::insertRefundRecord($param);
-        try{
-          $app = $this->return_app();
-          $payment = $app->payment;
+        $_result = $payment->refund($out_trade_no, $out_refund_no, $amount, $amount2);
 
-          $payment->queryRefund($out_trade_no);
-          $_result = $payment->refund($out_trade_no, $out_refund_no, $amount, $amount2);
-
-          if ($_result['return_code'] != 'SUCCESS') {
-            $result['code'] = 100;
-            $result['msg'] = "退款失败了。";
-            ServiceUser::updateRefundStatus($recordresult["id"],"FAIL", $result['msg']);
-          }else{
-            ServiceUser::updateRefundStatus($recordresult["id"],"SUCCESS");
-          }
-        }catch(\Exception $e){
+        if ($_result['return_code'] != 'SUCCESS') {
           $result['code'] = 100;
           $result['msg'] = "退款失败了。";
-          ServiceUser::updateRefundStatus($recordresult["id"],"FAIL",$e->getMessage());
         }
 
       } else {
@@ -782,50 +731,14 @@ class NewsController extends Controller
       $oauth = $app->oauth;
 
       $user = $oauth->user();
-      $userinfo = $user->toArray();
-      ServiceUser::saveWechatUser($userinfo);
-      $_SESSION['wechat_user'] = $userinfo;
+
+      $_SESSION['wechat_user'] = $user->toArray();
 
       $targetUrl = empty($_SESSION['target_url']) ?  "http://" . $_SERVER['HTTP_HOST'] . "/information_list.html" : $_SESSION['target_url'];
 
       return redirect($targetUrl);
     }catch(\Exception $e){
       $this->do_oauth();
-
-      $targetUrl = empty($_SESSION['target_url']) ?  "http://" . $_SERVER['HTTP_HOST'] . "/information_list.html" : $_SESSION['target_url'];
-
-      return redirect($targetUrl);
-    }
-  }
-  /**
-   * 微信授权统一回调地址
-   *
-   * @return Ambigous
-   */
-  public function getBaseoauth() {
-    /***如果oauth_code失效就重新进行授权 modify by duan**/
-    try {
-      $app = $this->return_base_app();
-
-      $oauth = $app->oauth;
-
-      $user = $oauth->user();
-      $user_info = $user->toArray();
-
-      $wechat_user = WechatUser::where("openid",$user_info['id'])->first();
-
-      if(null!=$wechat_user){
-        $wechat_user = $wechat_user->toArray();
-        $wechat_user["id"] = $wechat_user["openid"];
-        $_SESSION['wechat_user'] = $wechat_user;
-      }else{
-        $_SESSION['wechat_user'] = $user_info;
-      }
-      $targetUrl = empty($_SESSION['target_url']) ?  "http://" . $_SERVER['HTTP_HOST'] . "/information_list.html" : $_SESSION['target_url'];
-
-      return redirect($targetUrl);
-    }catch(\Exception $e){
-      $this->do_base_oauth();
 
       $targetUrl = empty($_SESSION['target_url']) ? "http://" . $_SERVER['HTTP_HOST'] . "/information_list.html" : $_SESSION['target_url'];
 

@@ -276,7 +276,23 @@ wml.define("you/page/question_detail", function (require, exports) {
   var wxpay = require('you/app/wxpay')
 
   var detail_id = urlHandler.getParam(location.href, 'id')
-    , detail_type = 'question'
+    , detail_type = 'question';
+
+  var limits = {
+    content: 300,
+    qrcode_content: 2000
+  };
+  function onTextareaInput($textarea, limit) {
+    var len = $textarea.val().length;
+    var $hint = $textarea.siblings('.input_hint');
+    if (len > limit) {
+      $hint.addClass('red');
+    } else {
+      $hint.removeClass('red');
+    }
+    $hint.text(limit-len);
+  }
+  
 
   $('.main_container').on('click', '.price_wrap .price_item', function (event) {
     $(this).addClass('act').siblings().removeClass('act')
@@ -286,6 +302,12 @@ wml.define("you/page/question_detail", function (require, exports) {
   }).on('click', '.reply_btn', function (event) {
     $('.question_btn_group').hide()
     $('.reply_wrap').show()
+    $('[name=content]').on('input', function(){
+      onTextareaInput($(this), limits.content);
+    });
+    $('[name=qrcode_content]').on('input', function(){
+      onTextareaInput($(this), limits.qrcode_content);
+    });
   }).on('click', '.cancel_btn', function (event) {
     $('.question_btn_group').show()
     $('.reply_wrap').hide()
@@ -359,8 +381,6 @@ wml.define("you/page/question_detail", function (require, exports) {
 // 	}
 // });
 
-  var uploadImageNum = 0;
-  var uploadVideoNum = 0;
   var uploading = false;
 
   // 图片上传最大数量限制
@@ -388,30 +408,18 @@ wml.define("you/page/question_detail", function (require, exports) {
     //duan
     var type = $this.attr("data-value");
     if("ssz_news"==type){
-      if (parseInt($this.attr('uploadNum')) >= parseInt($this.attr('data-max-file'))) {
-        alert('最多上传' + $this.attr('data-max-file') + '个文件!');
+      if (parseInt($this.data('uploadnum')) >= parseInt($this.data('maxnum'))) {
+        alert('最多上传' + $this.data('maxnum') + '个文件!');
         ret = false;
       }
     }
     if (fileInfo.type == 'image') {
-      if("ssz_news"!=type) {
-        if (parseInt($this.attr('uploadImageNum')) >= parseInt($this.attr('data-max-image'))) {
-          alert('最多上传' + $this.attr('data-max-image') + '张图片!');
-          ret = false;
-        }
-      }
       if (fileInfo.size > 80 * 1024 * 1024) { // 图片大小不能超过2m
         alert('上传图片大小最大不能超过80M!');
         ret = false;
       }
     }
     if (fileInfo.type == 'video') {
-      if("ssz_news"!=type) {
-        if (parseInt($this.attr('uploadVideoNum')) >= parseInt($this.attr('data-max-video'))) {
-          alert('最多上传' + $this.attr('data-max-video') + '个视频!');
-          ret = false;
-        }
-      }
       if (fileInfo.size > 300 * 1024 * 1024) { // 图片大小不能超过20m
         alert('上传视频大小最大不能超过300M!');
         ret = false;
@@ -448,20 +456,29 @@ wml.define("you/page/question_detail", function (require, exports) {
       , success: function (res) {
         console.log(res)
         if (res.code == 200) {
+         
          //duan
+         if("hide_file_input"==$input.attr("id")){
+           var file_num = $input.attr(res.data.file_type+'Num');
+           var num = 1;
+           if(file_num!=null){
+             num = parseInt($input.attr(res.data.file_type+'Num')) + 1;
+           }
+           $input.attr(res.data.file_type+'Num', num);//duan
+         }
+
           if (res.data.file_type == 'vedio') {
 
-            $input.attr('uploadVideoNum', (parseInt($input.attr('uploadVideoNum')) ? parseInt($input.attr('uploadVideoNum')) : 0) + 1);
             $item.attr('type', 'vedio');
             $item.html('<a href="'+res.data.url+'" class="col-12 col img_item">' +
                 '<img alt="点击播放" src="' + res.data.imgurl + '"></a>');
           } else {
 
-            $input.attr('uploadImageNum', (parseInt($input.attr('uploadImageNum')) ? parseInt($input.attr('uploadImageNum')) : 0) + 1);
             $item.attr('type', res.data.file_type);
             $item.html('<a href="'+res.data.url+'" class="col-12 col img_item">' +
                 '<img alt="点击查看" src="' + res.data.imgurl + '"></a>');
           }
+          $input.data('uploadnum', parseInt($input.data('uploadnum')) + 1);
         } else {
           alert(res.msg)
           $item.remove()
@@ -486,41 +503,14 @@ wml.define("you/page/question_detail", function (require, exports) {
         $item.remove()
         if (!uploading) {
           var type = $item.attr('type')
-          //duan
-          if (type == 'video') {
-            $input.attr('uploadVideoNum', parseInt($input.attr('uploadVideoNum')) - 1);
-          } else {
-            $input.attr('uploadImageNum', parseInt($input.attr('uploadImageNum')) - 1);
+          if("hide_file_input"==$input.attr("id")){
+            $input.attr(type+'Num', parseInt($input.attr(type+'Num')) - 1);
           }
+          $input.data('uploadnum', parseInt($input.data('uploadnum')) - 1);
         }
         ajax && ajax.abort()
       }
     });
-  });
-
-  //add by duan
-  $('#content').on('input', function (event) {
-    var _l = $(this).val().length;
-    if (_l > 200) {
-      $(this).val($(this).val().substr(0, 200));
-      $('#ssz-limit-1').html("写的也太多了吧，这里请不要超过200字！");//modify duan
-    }
-  });
-
-  $('#qrcode_content').on('input', function (event) {
-    var _l = $(this).val().length;
-    if (_l > 2000) {
-      $(this).val($(this).val().substr(0, 2000));
-      $('#ssz-limit-2').html("写的也太多了吧，这里请不要超过2000字！");//modify duan
-    }
-  });
-
-  $('#thumb_des').on('input', function (event) {
-    var _l = $(this).val().length;
-    if (_l > 500) {
-      $(this).val($(this).val().substr(0, 500));
-      $('#ssz-limit-3').html("写的也太多了吧，这里请不要超过500字！");//modify duan
-    }
   });
 
 
@@ -535,31 +525,25 @@ wml.define("you/page/question_detail", function (require, exports) {
       , content_img = []
       , thumb = []
       , qrcode_content = $('[name=qrcode_content]').val();
-      var _bool = 0;
+
     if (!content) {
-      $('#ssz-limit-1').html('请输入回答信息');
-      $('[name=content]').focus()
+      alert('请输入现场信息显示部分文字');
+      $('[name=content]').focus();
       return;
-    } else if (content.length > 200) {
-      // alert('回答信息内容太长! 最多不能超200字，请适当删减之后再次提交.');
-      $('#ssz-limit-1').html('写的也太多了吧，这里请不要超过200字！');
-      // $('[name=content]').focus()
-      // return;
-      _bool = 1;
+    } else if (content.length > 300) {
+      alert('现场信息显示部分文字限制300个！');
+      $('[name=content]').focus();
+      return;
     }
     if (!qrcode_content) {
-      $('#ssz-limit-2').html('请输入需要打码的信息');
-      $('[name=qrcode_content]').focus()
+      alert('请输入现场信息支付部分文字');
+      $('[name=qrcode_content]').focus();
       return;
     } else if (qrcode_content.length > 2000) {
-      // alert('打码内容太长! 最多不能超2000字，请适当删减之后再次提交.');
-      $('#ssz-limit-2').html('写的也太多了吧，这里请不要超过2000字！');
-      // $('[name=content]').focus()
-      // return;
-      _bool = 1;
+      alert('现场信息支付部分文字限制2000个！');
+      $('[name=qrcode_content]').focus()
+      return;
     }
-
-    if (_bool) return;
     //统计个数，不包含预览的文件个数
     var free_number = $("#free_number").val();
     var filenumber={};
@@ -755,6 +739,9 @@ wml.define("you/page/question_detail", function (require, exports) {
         $('#intro_page .close').click(function(){
           $('#intro_page').hide();
         });
+        wxShareConfig(item);
+      }else if (res.code == 100) {
+        loadErr('此信息已被删除')
       } else {
         loadErr(res.msg)
       }
@@ -769,6 +756,33 @@ wml.define("you/page/question_detail", function (require, exports) {
   function loadErr(msg) {
     msg = msg || '获取数据失败'
     $('.tip').html(msg)
+  }
+  function wxShareConfig(item) {
+    var shareConfig = {
+      title: item.nickname+'打赏'+item.price+'元提问了现场'+item.event_type+'问题，有谁到场过？',
+      imgUrl: item.avatar || window.location.origin+'/img/share_avatar.png'
+    };
+    $.ajax({
+      type: "POST",
+      url: "/news/share",
+      dataType: "json",
+      data: {
+        url: location.href.split('#')[0]
+      },
+      success: function(res){
+        wx.config(res);
+        wx.ready(function(){
+          wx.onMenuShareAppMessage(shareConfig);
+          wx.onMenuShareTimeline(shareConfig);
+        });
+        wx.error(function(){
+          console.log('jssdk config error');
+        });
+      },
+      error: function(){
+        console.log('获取jssdk配置失败');
+      }
+    });
   }
   
 });

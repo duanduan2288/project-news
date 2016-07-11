@@ -169,6 +169,12 @@ wml.define("you/page/information_pub", function (require, exports) {
   $('.price_wrap').on('click', '.price_item', function (event) {
     $(this).addClass('act').siblings().removeClass('act')
     $('.price_custom').val('')
+    if ($(this).data('value') == 0) {
+      $('.evaluate').hide();
+      $('[name=confirm_status]').prop('checked', false);
+    } else {
+      $('.evaluate').show();
+    }
   }).on('input', '.price_custom', function (event) {
     $(this).addClass('act').siblings().removeClass('act')
     var val = $(this).val();
@@ -181,6 +187,12 @@ wml.define("you/page/information_pub", function (require, exports) {
     if(first == -1 || (!isNaN(value) && (temp_length == 1) && (first==last) && (length - last <= 3) )){
     }else{
       $(this).val(value.substr(0, Math.min(value.length, value.indexOf('.') + 3)));
+    }
+    if ($(this).val() > 0) {
+      $('.evaluate').show();
+    } else {
+      $('.evaluate').hide();
+      $('[name=confirm_status]').prop('checked', false);
     }
   });
   $('.event_type_wrap').on('click', '.price_item', function (event) {
@@ -218,21 +230,17 @@ wml.define("you/page/information_pub", function (require, exports) {
       alert('上传类型不允许');
       ret = false;
     }
+    if (parseInt($this.data('uploadnum')) >= parseInt($this.data('maxnum'))) {
+      alert('上传数量最多不能超过' + $this.data('maxnum') + '个!');
+      ret = false;
+    }
     if (fileInfo.type == 'image') {
-      if (parseInt($this.attr('uploadImageNum')) >= parseInt($this.attr('data-max-image'))) {
-        alert('上传图片数量最多不能超过' + $this.attr('data-max-image') + '张!');
-        ret = false;
-      }
       if (fileInfo.size > 80 * 1024 * 1024) { // 图片大小不能超过2m
         alert('上传图片大小最大不能超过80M!');
         ret = false;
       }
     }
     if (fileInfo.type == 'video') {
-      if (parseInt($this.attr('uploadVideoNum')) >= parseInt($this.attr('data-max-video'))) {
-        alert('上传数量最多不能超过' + $this.attr('data-max-video') + '个!');
-        ret = false;
-      }
       if (fileInfo.size > 300 * 1024 * 1024) { // 视频大小不能超过20m
         alert('上传视频大小最大不能超过300M!');
         ret = false;
@@ -240,42 +248,28 @@ wml.define("you/page/information_pub", function (require, exports) {
     }
     return ret;
   }
-  /*
-  $('#content').on('input', function (event) {
-    var _l = $(this).val().length;
-    var _i;
-    if (_l > 200) {
-      $(this).val($(this).val().substr(0, 200));
-      _i = 0;
-      $('#ssz-limit-1').html("写的也太多了吧，这里请不要超过200字！");//modify duan
+  
+  var limits = {
+    content: 300,
+    qrcode_content: 2000
+  };
+  function onTextareaInput($textarea, limit) {
+    var len = $textarea.val().length;
+    var $hint = $textarea.siblings('.input_hint');
+    if (len > limit) {
+      $hint.addClass('red');
     } else {
-      _i = 200 - _l;
+      $hint.removeClass('red');
     }
-
-  })
-
-  $('#qrcode_content').on('input', function (event) {
-    var _l = $(this).val().length;
-    var _i;
-    if (_l > 2000) {
-      $(this).val($(this).val().substr(0, 2000));
-      _i = 0;
-      $('#ssz-limit-1').html("写的也太多了吧，这里请不要超过2000字！");//modify duan
-    } else {
-      _i = 2000 - _l;
-    }
-    // $('#ssz-limit-2').html(_i);
+    $hint.text(limit-len);
+  }
+  $('#content').on('input', function(){
+    onTextareaInput($(this), limits.content);
   });
-  */
-  //add by duan
-  $('#thumb_des').on('input', function (event) {
-    var _l = $(this).val().length;
-    if (_l > 500) {
-      $(this).val($(this).val().substr(0, 500));
-      $('#ssz-limit-3').html("写的也太多了吧，这里请不要超过500字！");//modify duan
-    }
-
+  $('#qrcode_content').on('input', function(){
+    onTextareaInput($(this), limits.qrcode_content);
   });
+
 
   $('input[type=file]').on('change', function (event) {
     var _this = this
@@ -292,7 +286,6 @@ wml.define("you/page/information_pub", function (require, exports) {
     form.append('file', file)
     var $item = $(shareTmp('upload_item_tpl'))
     $(this).parents('.upload_btn').before($item);
-
     var ajax = $.ajax({
       url: '/news/upload'
       , type: 'POST'
@@ -317,7 +310,6 @@ wml.define("you/page/information_pub", function (require, exports) {
           }
 
           if (res.data.file_type == 'vedio') {
-            $input.attr('uploadVideoNum', parseInt($input.attr('uploadVideoNum')) + 1);
             $item.attr('type', 'vedio');
             $item.html('<a href="'+res.data.url+'" class="table col-4 mt20 center p0 img_item left">' +
                 '<span class="ssz-span table-cell align-middle overflow-hidden">' +
@@ -325,11 +317,11 @@ wml.define("you/page/information_pub", function (require, exports) {
 
             //$item.html('<video width="1rem" height="1rem"  src="' + res.data + '" controls="controls">');
           } else {
-            $input.attr('uploadImageNum', parseInt($input.attr('uploadImageNum')) + 1);
             $item.attr('type', res.data.file_type);
             $item.html('<a href="'+res.data.url+'" class="table col-4 mt20 center p0 img_item left"><span class="ssz-span table-cell align-middle overflow-hidden">' +
                 '<img alt="点击查看" src="' + res.data.imgurl + '"></span></a>');
           }
+          $input.data('uploadnum', parseInt($input.data('uploadnum')) + 1);
         } else {
           alert(res.msg)
           $item.remove()
@@ -337,7 +329,7 @@ wml.define("you/page/information_pub", function (require, exports) {
       }
       , error: function (xhr, type) {
         if (type == 'abort') {
-
+          
         } else {
           alert('上传失败')
         }
@@ -358,11 +350,7 @@ wml.define("you/page/information_pub", function (require, exports) {
           if("hide_file_input"==$input.attr("id")){
             $input.attr(type+'Num', parseInt($input.attr(type+'Num')) - 1);
           }
-          if (type == 'video') {
-            $input.attr('uploadVideoNum', parseInt($input.attr('uploadVideoNum')) - 1);
-          } else {
-            $input.attr('uploadImageNum', parseInt($input.attr('uploadImageNum')) - 1);
-          }
+          $input.data('uploadnum', parseInt($input.data('uploadnum')) - 1);
         }
         ajax && ajax.abort()
       }

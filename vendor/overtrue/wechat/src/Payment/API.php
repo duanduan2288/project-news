@@ -389,6 +389,7 @@ class API extends AbstractAPI
         $params['sign'] = generate_sign($params, $this->merchant->key, 'md5');
 
         $options = array_merge([
+            'timeout'=>30,
             'body' => XML::build($params),
         ], $options);
 
