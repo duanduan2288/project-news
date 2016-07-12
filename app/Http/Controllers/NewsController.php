@@ -232,6 +232,10 @@ class NewsController extends Controller
 
 		if ($this->requestData['type'] == 'news') {
 			$this->requestData['file_number'] = json_encode($this->requestData['file_number']);
+
+			$voice_data = isset($this->requestData['voice_data'])?$this->requestData['voice_data']:[];
+			$this->requestData["voice_data"] = json_encode($voice_data);
+
 			$result = News::create($this->requestData + $this->returnUser());
 		} elseif ($this->requestData['type'] == 'question') {
 			$result = Question::create($this->requestData + $this->returnUser());
@@ -437,7 +441,7 @@ class NewsController extends Controller
 					$app = $this->return_app();
 					$payment = $app->payment;
 
-					$aa = $payment->queryRefund($out_trade_no);
+					$payment->queryRefund($out_trade_no);
 					$_result = $payment->refund($out_trade_no, $out_refund_no, $amount, $amount2);
 					Log::info($_result);
 
@@ -490,6 +494,10 @@ class NewsController extends Controller
 	{
 		$this->requestData['total_fee'] = ($this->requestData['total_fee'] <= 10000) ? $this->requestData['total_fee'] : 10000;
 		$this->requestData['file_number'] = json_encode($this->requestData['file_number']);
+
+		$voice_data = isset($this->requestData['voice_data'])?$this->requestData['voice_data']:[];
+		$this->requestData["voice_data"] = json_encode($voice_data);
+
 		$result = Answer::create($this->requestData + $this->returnUser());
 		//duan
 		if ($result) {
@@ -659,6 +667,8 @@ class NewsController extends Controller
 			$list[ $k ]["other_count"] = isset($file_number["other_count"]) ? $file_number["other_count"] : 0;
 
 			$list[ $k ]['qr_length'] = mb_strlen($list[ $k ]['qrcode_content']);
+
+			$list[ $k ]["voice_data"] = null != $v["voice_data"] ? \GuzzleHttp\json_decode($v["voice_data"], true) : [];
 			// Log::info($list[$k]');
 			// Log::info($list[$k]);
 
