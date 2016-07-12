@@ -20,6 +20,7 @@ class ServiceNews
 	const adminopenid = "o4utmv0Nli7y29QJmYvorFWr_FH4";
 	const answertemplateId = "8T44Ohxf1enWTH-mDOW54AxuPZfgsjmHTVHG3XaWdts";
 	const appraisetemplateId = "swWxi8REN7P4ZscFo5dGhos7ac1wdBaS0ssXfXAQG-c";
+	const failNoticetemplateId = "oRuJIsp16S8yCqo7V7yO6gcFaIat_rYB_KZR17CDO-o";//退款或企业支付失败通知
 	/**
 	 * 发送模板消息
 	 * @param $app
@@ -46,8 +47,80 @@ class ServiceNews
 		}
 	}
 
-	public static function getParamForFail($param){
+	/**
+	 * 企业支付发送消息
+	 * @param $param
+	 * @return array|bool
+	 */
+	public static function getParamForBusiness($param){
+		$url = $_SERVER["HTTP_HOST"]."/information_list.html";
 
+		$first = $param["desc"].$param['status'].$param["error_msg"];
+		$senddata = array(
+				"first"    => [$first, '#FF0000'],
+				"keyword1" => $param["partner_trade_no"],
+				"keyword2" => date("Y-m-d H:i:s"),
+				"keyword3" => $param["type"],
+				"keyword4" => $param["amount"]/100,
+				"remark"   => $param["desc"]
+		);
+
+		$data = [
+				"openid"		=>	self::adminopenid,
+				"templateId" 	=> 	self::failNoticetemplateId,
+				"url"			=>	$url,
+				'senddata'		=>	$senddata
+		];
+
+		return $data;
+	}
+	/**
+	 * 退款失败发送消息
+	 * @param $param
+	 * @return array|bool
+	 */
+	public static function getParamForFail($param){
+		$order = NewsOrder::where(["out_trade_no"=>$param["out_trade_no"]])->first();
+		if(null==$order){
+			return false;
+		}
+		$order = $order->toArray();
+		if("news"==$order["type"]){
+			$keyword3 = "现场";
+			$url = $_SERVER["HTTP_HOST"]."/information_detail.html?id={$order['pay_id']}";
+			$order_info = News::select(["content","created_at","nickname"])->where(["id"=>$order['pay_id']])->first();
+			if(null==$order_info){
+				return false;
+			}
+		}else{
+			$keyword3 = "问问";
+			$order_info = Answer::select(["content","created_at","q_id","nickname"])->where(["id"=>$order['pay_id']])->first();
+			if(null==$order_info){
+				return false;
+			}
+			$url = $_SERVER["HTTP_HOST"]."/question_detail.html?id={$order_info['q_id']}";
+		}
+
+		$param['from_nickname'] = ServiceUser::getNickname();
+
+		$first = "{$param['from_nickname']}对{$order_info['nickname']}{$order_info['created_at']}发布的信息{$param['status']} ".$param["error_msg"];
+		$senddata = array(
+				"first"    => [$first, '#FF0000'],
+				"keyword1" => $param["out_trade_no"],
+				"keyword2" => date("Y-m-d H:i:s"),
+				"keyword3" => $keyword3,
+				"keyword4" => $param["refund_amount"],
+				"remark"   => mb_substr($order_info["content"],0,30)
+		);
+
+		$data = [
+				"openid"		=>	self::adminopenid,
+				"templateId" 	=> 	self::failNoticetemplateId,
+				"url"			=>	$url,
+				'senddata'		=>	$senddata
+		];
+
+		return $data;
 	}
 	/**
 	 * 获取拼接好的失实信息
@@ -91,13 +164,13 @@ class ServiceNews
 		if("news"==$param["type"]){
 			$keyword1 = "现场";
 			$url = $_SERVER["HTTP_HOST"]."/information_detail.html?id={$param['pay_id']}";
-			$order_info = News::select(["content","updated_at"])->where(["id"=>$param['pay_id']])->first();
+			$order_info = News::select(["content","updated_at","nickname",])->where(["id"=>$param['pay_id']])->first();
 			if(null==$order_info){
 				return false;
 			}
 		}else{
 			$keyword1 = "问问";
-			$order_info = Answer::select(["content","updated_at","q_id"])->where(["id"=>$param['pay_id']])->first();
+			$order_info = Answer::select(["nickname","content","updated_at","q_id"])->where(["id"=>$param['pay_id']])->first();
 			if(null==$order_info){
 				return false;
 			}

@@ -76,9 +76,19 @@ class ServiceUser
 	 * @param $pay_status
 	 * @return mixed
 	 */
-	public static function updateBusinessPayStatus($id,$pay_status,$message=""){
-		$flag = BusinessPayRecord::where("id",$id)->update(["pay_status"=>$pay_status,"renark"=>$message]);
-		return $flag;
+	public static function updateBusinessPayStatus($app,$id,$pay_status,$param,$message=""){
+		$record = BusinessPayRecord::where("id",$id)->first();
+		if(null!=$record){
+			$record->pay_status = $pay_status;
+			$record->remark = $message;
+			$record->save();
+
+			$param["status"] = $pay_status=="FAIL" ? "企业支付失败" : "企业支付成功";
+			$param["error_msg"] = !empty($message)?"失败原因：".$message:"";
+			$data = ServiceNews::getParamForBusiness($param);
+			ServiceNews::sendMessage($app,$data);
+		}
+		return true;
 	}
 
 	/**
@@ -98,8 +108,20 @@ class ServiceUser
 	 * @param $pay_status
 	 * @return mixed
 	 */
-	public static function updateRefundStatus($id,$refund_status,$message=""){
-		$flag = RefundRecord::where("id",$id)->update(["refund_status"=>$refund_status,"renark"=>$message]);
-		return $flag;
+	public static function updateRefundStatus($app,$id,$refund_status,$message=""){
+		$record = RefundRecord::where("id",$id)->first();
+		if(null!=$record){
+			$record->refund_status = $refund_status;
+			$record->remark = $message;
+			$record->save();
+
+			$param['out_trade_no'] = $record->out_trade_no;
+			$param["refund_amount"] = $record->refund_amount/100;
+			$param["status"] = $refund_status=="FAIL" ? "退款失败" : "退款成功";
+			$param["error_msg"] = !empty($message)?"失败原因：".$message:"";
+			$data = ServiceNews::getParamForFail($param);
+			ServiceNews::sendMessage($app,$data);
+		}
+		return true;
 	}
 }
