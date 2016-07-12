@@ -49,7 +49,7 @@ class ServiceUpload
 	public function uploadFile($key, $file)
 	{
 		$handle = fopen($file, 'r');
-		$value = $this->ossClient->putObject(array(
+		$value = $this->ossClient->putObject($this->bucket,$key,$file,array(
 			'Bucket' => $this->bucket,
 			'Key' => $key,
 			'Content' => $handle,
@@ -60,7 +60,7 @@ class ServiceUpload
 	}
 	public function uploadContent($key, $content)
 	{
-		return $this->ossClient->putObject(array(
+		return $this->ossClient->putObject($this->bucket,$key,$content,array(
 			'Bucket' => $this->bucket,
 			'Key' => $key,
 			'Content' => $content,
