@@ -1106,13 +1106,17 @@ class NewsController extends Controller
 	 */
 	public function postWechatmedia(){
 		$media_id = $this->requestData['media_id'];
+
 		$app = $this->return_app();
 		$temporary = $app->material_temporary;
+
 		$content = $temporary->getStream($media_id);
+
 		$ext =    File::getStreamExt($content);
 		$file_name = $media_id.$ext;
 		$outossurl = config('services.aliyun.OutOss');
 		$Bucket = config('services.aliyun.Bucket');
+
 		try{
 			//上传到阿里云
 			$oss = ServiceUpload::boot();
