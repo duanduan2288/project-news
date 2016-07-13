@@ -36,7 +36,7 @@ class ServiceFile
 	 * @param $guid
 	 * @return bool|string
 	 */
-	public static function submitJob($file_name,$guid){
+	public static function submitJob($file_name,$guid,$type=""){
 		try{
 			$Outoss = config('services.aliyun.OutOss');
 			$AccessKeyId = config('services.aliyun.AccessKeyId');
@@ -49,12 +49,21 @@ class ServiceFile
 				"Location"=>"oss-cn-hangzhou",
 				"Object"=>urlencode($file_name)
 			];
-			$OutputObject = $guid;
+
+			if($type=="voice"){
+				$templateId	 = config('services.aliyun.Voice_TemplateId');
+				$out_url = $Outoss.$guid.".mp3";
+				$OutputObject = $guid.".mp3";
+			}else{
+				$templateId	 = config('services.aliyun.TemplateId');
+				$out_url = $Outoss.$guid.".m3u8";
+				$OutputObject = $guid;
+			}
 			$outputs = [
 				[
 					"OutputObject"=>urlencode($OutputObject),
 					"Location"=>"oss-cn-hangzhou",
-					"TemplateId"=>config('services.aliyun.TemplateId')
+					"TemplateId"=>$templateId
 				]
 			];
 			$request = new Mts\SubmitJobsRequest();
@@ -63,7 +72,8 @@ class ServiceFile
 			$request->setOutputBucket($Bucket);
 			$request->setOutputs(json_encode($outputs));
 			$client->getAcsResponse($request);
-			return $Outoss.$guid.".m3u8";
+
+			return $out_url;
 		}catch (\Exception $e){
 			return false;
 		}

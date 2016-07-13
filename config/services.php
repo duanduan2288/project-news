@@ -43,9 +43,13 @@ return [
         'AccessKeyId'=>'niXWRQ0UBTvIHOmt',
         'AccessKeySecret'=>'AikuUvefNt2UVEtcEP1nE9p3Oxttmt',
         'PipelineId'=>'059ee436260b42d480d08e1aabb7f776',
-        'TemplateId'=>'S00000001-100020',
+        'TemplateId'=>'bf7338b18203e43027f97d361ed500e2',
+        'Voice_TemplateId'=>'89d2fc317ff261d488ed3d6db671abcc',
         'Location'=>'oss-cn-hangzhou',
         'SubmitTypes'=>['mp4','mov','mp3','m4a','qt','amr'],
+        'SubmitVedioTypes'=>['mp4','mov','qt','flv',],
+        'SubmitTxtTypes'=>['txt','xls','xlsx','pdf','doc','docx'],
+        'SubmitAudioTypes'=>['mp3','mov','amr','mpga'],
         'SubmitImgTypes'=>['mdi','mmr','npx','pbm','pct','pcx','pgm','pic','png','pnm','ppm','psd','ras','rgb','rlc','sgi','sid','svg','svgz','tga','tif','tiff','jpe','jpeg','jpg','ktx','uvg','uvi','uvvg','uvvi','wbmp','wdp','webp','xbm','xif','xpm','xwd']
     ],
     'confirm_status'=>[

@@ -79,9 +79,9 @@ class File
      */
     public static function getStreamExt($stream)
     {
-        if (is_dir(pathinfo($stream, PATHINFO_DIRNAME)) && is_readable($stream)) {
-            $stream = file_get_contents($stream);
-        }
+        //if (is_dir(pathinfo($stream, PATHINFO_DIRNAME)) && is_readable($stream)) {
+        //    $stream = file_get_contents($stream);
+        //}
 
         $finfo = new finfo(FILEINFO_MIME);
 

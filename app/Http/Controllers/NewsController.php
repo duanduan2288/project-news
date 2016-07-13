@@ -556,6 +556,7 @@ class NewsController extends Controller
 			$oss->multiuploadFile($file_name, $file->getPathname());
 
 			$imageurl = "";
+			$submitJob_type = "";
 			$url = $outossurl . $file_name;
 			switch ($ext) {
 				case in_array($ext, $SubmitImgTypes):
@@ -575,6 +576,7 @@ class NewsController extends Controller
 				case in_array($ext, $SubmitAudioTypes):
 					$imageurl = "/img/voice.png";
 					$file_type = "voice";
+					$submitJob_type = "voice";
 					break;
 				default:
 					$imageurl = "/img/other.png";
@@ -586,7 +588,7 @@ class NewsController extends Controller
 				//判断时长
 				$flag = ServiceFile::getDuration($file->getPathname());
 				if ($flag) {
-					$url = ServiceFile::submitJob($file_name, $guid);
+					$url = ServiceFile::submitJob($file_name, $guid,$submitJob_type);
 				}
 			}
 
@@ -1116,29 +1118,28 @@ class NewsController extends Controller
 	 */
 	public function postWechatmedia(){
 		$media_id = $this->requestData['media_id'];
-
 		$app = $this->return_app();
 		$temporary = $app->material_temporary;
 
-		$content = $temporary->getStream($media_id);
+		$file_name = $temporary->download($media_id, public_path("uploadchch"));
 
-		$ext =    File::getStreamExt($content);
-		$file_name = $media_id.$ext;
 		$outossurl = config('services.aliyun.OutOss');
 		$Bucket = config('services.aliyun.Bucket');
-
 		try{
 			//上传到阿里云
 			$oss = ServiceUpload::boot();
 			// 设置 Bucket
 			$oss = $oss->setBucket($Bucket);
 			// 两个参数：资源名称、文件内容
-			$oss->uploadContent($file_name, $content);
+			$oss->multiuploadFile($file_name, public_path("uploadchch")."/".$file_name);
 
-			$url = $outossurl . $file_name;
+			//转码作业
+			//$guid = uniqid().time();
+			//$url = ServiceFile::submitJob($file_name,$guid,"voice");
+			$url = $outossurl.$file_name;
 			$result = ["code"=>200,"media_url"=>$url];
 		}catch (\Exception $e){
-			$result = ["code"=>100,"msg"=>"上传失败"];
+			$result = ["code"=>100,"msg"=>$e->getMessage()];
 		}
 
 		return response()->json($result);
