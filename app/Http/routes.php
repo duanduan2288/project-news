@@ -15,6 +15,7 @@ Route::controller("news","NewsController");
 
 Route::controller("order","OrderController");
 
+Route::controller("tweets","TweetsController");
 
 Route::get('/', function () {
 

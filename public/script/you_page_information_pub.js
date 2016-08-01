@@ -49,7 +49,7 @@ wml.define("you/app/login", function (require, exports) {
           return;
         }
         ;
-        location.href = '/news/login'
+        //location.href = '/news/login'
       }
       , "error": function () {
       }
