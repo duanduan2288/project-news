@@ -9,7 +9,12 @@
 namespace App\Http\Controllers;
 
 
+use App\Answer;
+use App\NewsOrder;
+use App\OrderPayBack;
+use App\Services\ServiceLbs;
 use App\Tweets;
+use App\Vote;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 use app\AdminUser;
@@ -23,120 +28,275 @@ class TweetsController extends Controller
 	protected function returnUser()
 	{
 		return [
-			'openid' => $_SESSION['wechat_user']['id'],
-			'nickname' => $_SESSION['wechat_user']['nickname'],
-			'avatar' => $_SESSION['wechat_user']['avatar']
+			'openid' => "duan11111111111111",
+					//$_SESSION['wechat_user']['id'],
+			'nickname' => "duanduan",
+					//$_SESSION['wechat_user']['nickname'],
+			'avatar' => 'http://aaaa.duan.com/aa'
+					//$_SESSION['wechat_user']['avatar']
 		];
 	}
 
+	/**
+	 * 添加说说
+	 */
 	public function postTweets(){
 		$result = Tweets::create($this->requestData + $this->returnUser());
+		var_dump($result);die;
+		//将说说存到百度lbs
+		$data = $result;
+		$data["tweet_id"] = $data["id"];
+		unset($data["id"]);
+		$service = new ServiceLbs();
+		$result = $service->create($data);
+		var_dump($result);die;
 		$this->output($result);
 	}
 
 	/**
-	 * 获取我发布的所有内容
+	 * 获取列表
 	 * @return \Illuminate\Http\JsonResponse
 	 */
-	public function getMylist(){
-		//if (Request::input('page')) {
-			$page = Request::input("page",1);
-			$pagesize = 10;
+	public function getIndex(){
+		$page = Request::input("page",1);
+		$pagesize = 10;
 
-			$start = ($page - 1) * $pagesize;
+		$start = ($page - 1) * $pagesize;
+		$where = [
+				'is_display' => '1',
+				'is_delete' => '0'
+		];
 
-			$openid = 'o4utmvwt85XSNdP3SFKsJDXI8jas';
-				//$_SESSION['wechat_user']['id'];
-
-			//获取用户的news
-			$sql = "select openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display,position from news as n where is_delete=0 and openid='{$openid}'";
-			$sql .= " union all select openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display,position from tweets as tw where is_delete=0 and openid='{$openid}'";
-			$sql .= " union all select openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display,position from questions as qu where is_delete=0 and openid='{$openid}'";
-			$sql .= " order by created_at desc limit {$start},{$pagesize}";
-
-			$data = DB::select($sql);
-			var_dump($data);die;
-			$list = News::where($where)
+		$list = Tweets::select("id,content,create_at,is_display,openid,avatar,nickname,latitude,longitude")
+				->where($where)
 				->orderBy("id", "desc")
 				->skip($start)->take($pagesize)
 				->get()
 				->toArray();
 
+		return $this->output($list);
+	}
 
-			$is_admin = 0;
-			if (AdminUser::where('openid', $_SESSION['wechat_user']['id'])->first()) {
-				$is_admin = 1;
+	/**
+	 * 获取说说详情
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function getDetail(){
+
+		$id = trim(Request::input("id",""));
+		if(empty($id)){
+			$result = ["code"=>100,"msg"=>"参数错误"];
+			return response()->json($result);
+		}
+		//获取说说的详情
+		$tweet_obj = Tweets::find($id)->toArray();
+		if(null==$tweet_obj){
+			$result = ["code"=>100,"msg"=>"数据不存在"];
+			return response()->json($result);
+		}
+		$tweet = $tweet_obj->toArray();
+
+		//查看说说下面的问问
+		$question = [];
+		$question_obj = Question::where(["tweet_id"=>$tweet["id"],'is_display'=>1,'is_delete'=>0])
+				->orderBy("id", "desc")
+				->get();
+		if(!empty($question_obj)){
+			$question = $question_obj->toArray();
+			foreach($question as $k=>$v){
+				$question[$k]['answers'] = $this->_format_question_answer($this->requestData['id']);;
+			}
+		}
+		$tweet["questions"] = $question;
+
+		return $this->output($tweet);
+	}
+	/**
+	 * 获取我发布的所有内容
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function getMylist(){
+		$page = Request::input("page",1);
+		$pagesize = 10;
+
+		$start = ($page - 1) * $pagesize;
+
+		$openid = $_SESSION['wechat_user']['id'];
+
+		//获取用户的news
+		$sql = "select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display,position from news as n where is_delete=0 and openid='{$openid}'";
+		$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display,position from tweets as tw where is_delete=0 and openid='{$openid}'";
+		$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display,position from questions as qu where is_delete=0 and openid='{$openid}'";
+		$sql .= " order by created_at desc limit {$start},{$pagesize}";
+
+		$data = DB::select($sql);
+
+		return $this->output($data);
+	}
+
+	/**
+	 * 格式化question,详情页数据展示
+	 *
+	 * @param string $q_id
+	 * @return multitype:
+	 */
+	protected function _format_question_answer($q_id = "")
+	{
+		$list = [];
+		$user_id = $_SESSION['wechat_user']['id'];
+		if ($this->_is_admin()) {
+			// 管理员用户显示全部，包括删除的回答
+			$list = Answer::withTrashed()->where(['q_id' => $q_id])->orderBy('updated_at', 'desc')->get()->toArray();
+		} elseif (Question::where('id', $q_id)->value('openid') == $user_id) {
+			// 问问题的人，不管is_display字段，显示所有未删除的回答
+			$list = Answer::where(['q_id' => $q_id])->OrderBy('updated_at', 'desc')->get()->toArray();
+		} else {
+			// 普通用户，仅显示所有is_display=1的，加自己的回答，加已经购买的回答
+			$payIds = Orders::where(['openid' => $user_id, 'type' => 'answer', 'pay_status' => 'PAY_SUCCESS'])->lists('pay_id');
+			Log::info($payIds);
+			$list = Answer::where(['q_id' => $q_id, 'is_display' => 1])->orWhere(['q_id' => $q_id, 'openid' => $user_id])->orWhere(function ($query) use ($q_id, $payIds) {
+				$query->where('q_id', $q_id)
+						->whereIn('id', $payIds);
+			})->orderBy('updated_at', 'desc')->get()->toArray();
+			// Log::info($list);
+		}
+		return $this->format_list($list, 'answer');
+	}
+
+	/**
+	 * 格式化news 、 answer
+	 *
+	 * @param unknown $list
+	 * @param string $type
+	 * @return multitype:
+	 */
+	public function format_list($list = [], $type = "news") {
+		if (!$list) return [];
+
+		foreach ($list as $k => $v) {
+			$list[$k]['content_img'] = $v['content_img'] ? explode(',', $v['content_img']) : [];
+			//duan
+			$file_number = null!=$v["file_number"] ? \GuzzleHttp\json_decode($v["file_number"],true):[];
+			$list[$k]["vedio_count"] = isset($file_number["vedio_count"])?$file_number["vedio_count"]:0;
+			$list[$k]["image_count"] = isset($file_number["image_count"])?$file_number["image_count"]:0;
+			$list[$k]["voice_count"] = isset($file_number["voice_count"])?$file_number["voice_count"]:0;
+			$list[$k]["txt_count"] = isset($file_number["txt_count"])?$file_number["txt_count"]:0;
+			$list[$k]["other_count"] = isset($file_number["other_count"])?$file_number["other_count"]:0;
+
+			$list[$k]['qr_length'] = mb_strlen($list[$k]['qrcode_content']);
+			// Log::info($list[$k]');
+			// Log::info($list[$k]);
+
+			$list[$k]['is_admin'] = $this->_is_admin();
+			$list[$k]['is_me'] = ($list[$k]['openid'] == $_SESSION['wechat_user']['id'])?1:0;
+			$list[$k]['confirm_status'] = intval($list[$k]['confirm_status']);
+			if ($type == 'answer') {
+				$list[$k]['has_delete_btn'] = 1;
+				$_where = [
+						'pay_id'     => $list[$k]['id'],
+						'pay_status' => 'PAY_SUCCESS',
+						'type'       => 'answer'
+				];
+				if (!$list[$k]['is_me'] || Orders::where($_where)->count() > 0) {
+					$list[$k]['has_delete_btn'] = 0;
+				}
 			}
 
-			if ($this->requestData['type'] == 'news') {
-				if ($is_admin) {
-					// 管理员能看所有的，is_dete表示鉴定汇总页面
-					if ($this->requestData['is_dete']) {
-						$list = News::withTrashed()->where('confirm_status', '1')->skip($start)->take($pagesize)
-							->orderBy("id", "desc")
-							->get()
-							->toArray();
-					} else {
-						$list = News::withTrashed()->skip($start)->take($pagesize)
-							->orderBy("id", "desc")
-							->get()
-							->toArray();
-					}
-				} else {
-					// 对所有用户都可见的，未隐藏，且未被用户删除的
-					$where = [
-						'type' => 'news',
-						'openid' => $openid,
-						'pay_status' => 'PAY_SUCCESS'
-					];
-					// 用户已经购买的物品
-					$mustShow = Orders::where($where)->lists('pay_id');
-					$where = [
-						'is_display' => '1',
-						'is_delete' => '0'
-					];
-
-					$list = News::where($where)
-						->orWhereIn('id', $mustShow)
-						->orderBy("id", "desc")
-						->skip($start)->take($pagesize)
-						->get()
-						->toArray();
+			//失实证明 duan
+			$payback = OrderPayBack::where(['type'=>$type, 'vote_id'=>$list[$k]['id']])->first();
+			if(null!=$payback){
+				$list[$k]['can_payback'] = 0;
+				$detail = $payback->toArray();
+				if(!empty($detail["files"])){
+					$detail["files"] = explode(",",$detail["files"]);
 				}
+				$list[$k]['payback_detail'] = $detail;
 
-				return $this->output($this->format_list($list));
-			} elseif ($this->requestData['type'] == 'question') {
-				if ($is_admin) {
-					$list = Question::withTrashed()->skip($start)->take($pagesize)
-						->orderBy("id", "desc")
-						->get()
-						->toArray();
-				} else {
-					$list = Question::where('is_display', '1')->skip($start)->take($pagesize)
-						->orderBy("id", "desc")
-						->get()
-						->toArray();
-				}
-				foreach ($list as $k => $v) {
-					$list[ $k ]['answer_count'] = Answer::where(['q_id' => $v['id']])->count();
-					$useful_count = Vote::where([
-						'type' => 'answer',
-						'vote' => 3,
-						'vote_id' => $v['id']
-					])->count();
-
-					$good_count = Vote::where([
-						'type' => 'answer',
-						'vote' => 2,
-						'vote_id' => $v['id']
-					])->count();
-					$list[ $k ]['effect_count'] = $useful_count + $good_count;
-					$list[ $k ]['is_admin'] = $is_admin;
-				}
-
-
-				return $this->output($list);
+			}else{
+				$list[$k]['can_payback'] = 1;
+				$list[$k]['payback_detail'] = [];
 			}
-		//}
+
+			$list[$k]['thumb'] = $v['thumb'] ? explode(',', $v['thumb']) : 0;
+			//if (count($list[$k]['thumb_des']) == 0) $list[$k]['thumb_des'] = 0;
+			$list[$k]["sum"] = count($list[$k]['thumb']) + count($list[$k]['content_img']);
+			//我是否投票
+			$list[$k]['vote'] = Vote::where(['openid' => $_SESSION['wechat_user']['id'] , 'type' => $type,'vote_id' => $v['id']])->pluck('vote')->toArray()[0];
+
+
+			$order = $this->_check_pay($v['id'], $type);
+			if(null!==$order){
+				$list[$k]['pay_date'] = $order["pay_date"];
+				$is_payed = 1;
+			}else{
+				$list[$k]['pay_date'] = "";
+				$is_payed = 0;
+			}
+
+			if($type =="news" && !$v['price']) {
+				$is_payed = true;
+			}
+
+			if ($v['openid'] != $_SESSION['wechat_user']['id'] && !$is_payed && !$this->_is_admin()) {
+				$list[$k]['qrcode_content'] = "";
+				$list[$k]['content_img'] = [];
+			}
+			$list[$k]['is_open'] = $is_payed;
+			if ($this->_is_admin()) {
+				$list[$k]['is_open'] = 1;
+			}
+
+			$list[$k] += $this->return_useful_data($v['id'], $type);
+		}
+		return $list;
+	}
+
+	/**
+	 * 返回投票数据
+	 *
+	 * @param string $id
+	 * @return array
+	 */
+	public function return_useful_data($id = "", $type = "") {
+		$useful_count = Vote::where([
+				'type' => $type,
+				'vote' => 3,
+				'vote_id' => $id
+		])->count();
+
+		$good_count = Vote::where([
+				'type' => $type,
+				'vote' => 2,
+				'vote_id' => $id
+		])->count();
+
+		$useless_count = Vote::where([
+				'type' => $type,
+				'vote' => 1,
+				'vote_id' => $id
+		])->count();
+
+		$is_useful = (($useful_count > 0) || ($good_count > 1)) ? 1 : 0;
+		$effect_count = $useful_count + $good_count;
+		return compact('useful_count', 'useless_count', 'is_useful', 'good_count', 'effect_count');
+	}
+
+	/**
+	 * 判断是否支付，返回相应的内容
+	 *
+	 * @param unknown $id
+	 * @param unknown $type
+	 */
+	public function _check_pay($id, $type) {
+		$where = [
+				'pay_id' => $id,
+				'type' => $type,
+				'openid' => $_SESSION['wechat_user']['id'],
+				'pay_status' => 'PAY_SUCCESS'
+		];
+
+		$order = NewsOrder::where($where)->first();
+
+		return  $order;
 	}
 }
