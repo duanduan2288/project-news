@@ -103,9 +103,9 @@ class ServiceLbs extends AbstractLbs
 	 */
 	public function create(array $data)
 	{
-		$data = array_merge($data, ['geotable_id' => self::GEOTABLE_ID,'ak'=>self::AK]);
+		$data = array_merge($data, ['geotable_id' => self::GEOTABLE_ID,'ak'=>self::AK,'coord_type'=>3]);
 
-		return $this->parseJSON('json', [self::API_CREATE_POI, $data]);
+		return $this->parseJSON('post', [self::API_CREATE_POI, $data]);
 	}
 
 	/**

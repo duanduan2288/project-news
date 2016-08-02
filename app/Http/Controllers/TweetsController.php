@@ -28,12 +28,9 @@ class TweetsController extends Controller
 	protected function returnUser()
 	{
 		return [
-			'openid' => "duan11111111111111",
-					//$_SESSION['wechat_user']['id'],
-			'nickname' => "duanduan",
-					//$_SESSION['wechat_user']['nickname'],
-			'avatar' => 'http://aaaa.duan.com/aa'
-					//$_SESSION['wechat_user']['avatar']
+			'openid' => $_SESSION['wechat_user']['id'],
+			'nickname' => $_SESSION['wechat_user']['nickname'],
+			'avatar' => $_SESSION['wechat_user']['avatar']
 		];
 	}
 
@@ -42,14 +39,16 @@ class TweetsController extends Controller
 	 */
 	public function postTweets(){
 		$result = Tweets::create($this->requestData + $this->returnUser());
-		var_dump($result);die;
 		//将说说存到百度lbs
-		$data = $result;
+		$data = $result->toArray();
 		$data["tweet_id"] = $data["id"];
+		$data["created_at"] = strtotime($data["created_at"]);
 		unset($data["id"]);
 		$service = new ServiceLbs();
-		$result = $service->create($data);
-		var_dump($result);die;
+		$res = $service->create($data);
+		if(isset($res["id"])){
+			Tweets::where(["id"=>$result["id"]])->update(["poi_id"=>$res["id"]]);
+		}
 		$this->output($result);
 	}
 

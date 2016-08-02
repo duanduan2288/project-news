@@ -77,7 +77,7 @@ abstract class AbstractLbs
 
 		$this->checkAndThrow($contents);
 
-		return new Collection($contents);
+		return $contents;
 	}
 
 	/**
@@ -89,12 +89,12 @@ abstract class AbstractLbs
 	 */
 	protected function checkAndThrow(array $contents)
 	{
-		if (isset($contents['errcode']) && 0 !== $contents['errcode']) {
-			if (empty($contents['errmsg'])) {
-				$contents['errmsg'] = 'Unknown';
+		if (isset($contents['status']) && 0 !== $contents['status']) {
+			if (empty($contents['message'])) {
+				$contents['message'] = 'Unknown';
 			}
 
-			throw new HttpException($contents['errmsg'], $contents['errcode']);
+			throw new HttpException($contents['message'], $contents['message']);
 		}
 	}
 }
