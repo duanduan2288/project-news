@@ -120,7 +120,8 @@ class TweetsController extends Controller
 
 		$start = ($page - 1) * $pagesize;
 
-		$openid = $_SESSION['wechat_user']['id'];
+		$openid = "o4utmv0Nli7y29QJmYvorFWr_FH4";
+			//$_SESSION['wechat_user']['id'];
 
 		//获取用户的news
 		$sql = "select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from news as n where is_delete=0 and openid='{$openid}'";
