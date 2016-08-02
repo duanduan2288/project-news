@@ -123,9 +123,9 @@ class TweetsController extends Controller
 		$openid = $_SESSION['wechat_user']['id'];
 
 		//获取用户的news
-		$sql = "select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display,position from news as n where is_delete=0 and openid='{$openid}'";
-		$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display,position from tweets as tw where is_delete=0 and openid='{$openid}'";
-		$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display,position from questions as qu where is_delete=0 and openid='{$openid}'";
+		$sql = "select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from news as n where is_delete=0 and openid='{$openid}'";
+		$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from tweets as tw where is_delete=0 and openid='{$openid}'";
+		$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from questions as qu where is_delete=0 and openid='{$openid}'";
 		$sql .= " order by created_at desc limit {$start},{$pagesize}";
 
 		$data = DB::select($sql);
@@ -157,7 +157,6 @@ class TweetsController extends Controller
 				$query->where('q_id', $q_id)
 						->whereIn('id', $payIds);
 			})->orderBy('updated_at', 'desc')->get()->toArray();
-			// Log::info($list);
 		}
 		return $this->format_list($list, 'answer');
 	}
