@@ -34,6 +34,17 @@ class TweetsController extends Controller
 		];
 	}
 
+	public function getGeosearch(){
+		$data = $this->requestData;
+		$service = new ServiceLbs();
+		$data = $service->geosearch($data);
+		if(isset($data["error_code"])){
+			$result = ['code'=>100,'msg'=>$data["msg"]];
+		}else{
+			$result = ['code'=>200,'result'=>$data];
+		}
+		return response()->json($result);
+	}
 	/**
 	 * 添加说说
 	 */
@@ -43,6 +54,7 @@ class TweetsController extends Controller
 		$data = $result->toArray();
 		$data["tweet_id"] = $data["id"];
 		$data["created_at"] = strtotime($data["created_at"]);
+		$data["tags"] = "tweets";
 		unset($data["id"]);
 		$service = new ServiceLbs();
 		$res = $service->create($data);

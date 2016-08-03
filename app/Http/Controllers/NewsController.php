@@ -12,7 +12,6 @@ use EasyWeChat\Message\Text;
 use EasyWeChat\Support\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\View;
 use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use Requests;
 use App\Question;
@@ -115,7 +114,8 @@ class NewsController extends Controller
 					$mustShow = Orders::where($where)->lists('pay_id');
 					$where = [
 						'is_display' => '1',
-						'is_delete' => '0'
+						'is_delete' => '0',
+						'openid'	=> $openid
 					];
 
 					$list = News::where($where)
@@ -134,7 +134,7 @@ class NewsController extends Controller
 						->get()
 						->toArray();
 				} else {
-					$list = Question::where('is_display', '1')->skip($start)->take($pagesize)
+					$list = Question::where(['is_display'=>'1','openid'	=> $openid])->skip($start)->take($pagesize)
 						->orderBy("id", "desc")
 						->get()
 						->toArray();

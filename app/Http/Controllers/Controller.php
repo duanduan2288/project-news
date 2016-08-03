@@ -25,7 +25,7 @@ class Controller extends BaseController
 
         session_start();
 
-        //$this->_is_login();
+        $this->_is_login();
     }
 
     public function return_base_app()

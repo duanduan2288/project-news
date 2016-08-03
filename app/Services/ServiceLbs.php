@@ -20,6 +20,7 @@ class ServiceLbs extends AbstractLbs
 	const API_POI_DEL   = 'http://api.map.baidu.com/geodata/v3/poi/list';//GET
 	const API_POI_GET   = 'http://api.map.baidu.com/geodata/v3/poi/detail';//GET
 	const API_POI_UPDATE   = 'http://api.map.baidu.com/geodata/v3/poi/update';//GET
+	const API_POI_SEARCH   = 'http://api.map.baidu.com/geosearch/v3/nearby';//GET
 
 
 	/**
@@ -91,7 +92,7 @@ class ServiceLbs extends AbstractLbs
 			'limit' => $limit,
 		];
 
-		return $this->parseJSON('json', [self::API_LIST, $params]);
+		return $this->parseJSON('json', [self::API_POI_LIST, $params]);
 	}
 
 	/**
@@ -103,9 +104,14 @@ class ServiceLbs extends AbstractLbs
 	 */
 	public function create(array $data)
 	{
-		$data = array_merge($data, ['geotable_id' => self::GEOTABLE_ID,'ak'=>self::AK,'coord_type'=>3]);
+		try{
+			$data = array_merge($data, ['geotable_id' => self::GEOTABLE_ID,'ak'=>self::AK,'coord_type'=>3]);
 
-		return $this->parseJSON('post', [self::API_CREATE_POI, $data]);
+			return $this->parseJSON('post', [self::API_CREATE_POI, $data]);
+		}catch (\Exception $e){
+			return ["error_code"=>$e->getCode(),"msg"=>$e->getMessage()];
+		}
+
 	}
 
 	/**
@@ -120,11 +126,7 @@ class ServiceLbs extends AbstractLbs
 	{
 		$data = array_merge($data, ['id' => $poiId,'geotable_id' => self::GEOTABLE_ID,'ak'=>self::AK]);
 
-		$params = [
-			'business' => ['base_info' => $data],
-		];
-
-		return $this->parseJSON('json', [self::API_POI_UPDATE, $params]);
+		return $this->parseJSON('json', [self::API_POI_UPDATE, $data]);
 	}
 
 	/**
@@ -141,6 +143,23 @@ class ServiceLbs extends AbstractLbs
 		return $this->parseJSON('json', [self::API_POI_DEL, $params]);
 	}
 
+	/**
+	 * 云检索
+	 * @param array $data
+	 * @return \EasyWeChat\Support\Collection
+	 */
+	public function geosearch( array $data){
+
+		try{
+			$data = array_merge($data, ['geotable_id' => self::GEOTABLE_ID,'ak'=>self::AK]);
+
+			return $this->parseJSON('get', [self::API_POI_SEARCH, $data]);
+
+		}catch (\Exception $e){
+			return ["error_code"=>$e->getCode(),"msg"=>$e->getMessage()];
+		}
+
+	}
 
 	function sign()
 	{
