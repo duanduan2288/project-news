@@ -17,7 +17,7 @@ class ServiceLbs extends AbstractLbs
 	const API_COLUMN_GEO = 'http://api.map.baidu.com/geodata/v3/column/create';
 	const API_CREATE_POI = 'http://api.map.baidu.com/geodata/v3/poi/create';
 	const API_POI_LIST   = 'http://api.map.baidu.com/geodata/v3/poi/list';//GET
-	const API_POI_DEL   = 'http://api.map.baidu.com/geodata/v3/poi/list';//GET
+	const API_POI_DEL   = 'http://api.map.baidu.com/geodata/v3/poi/delete';//GET
 	const API_POI_GET   = 'http://api.map.baidu.com/geodata/v3/poi/detail';//GET
 	const API_POI_UPDATE   = 'http://api.map.baidu.com/geodata/v3/poi/update';//GET
 	const API_POI_SEARCH   = 'http://api.map.baidu.com/geosearch/v3/nearby';//GET
@@ -87,12 +87,16 @@ class ServiceLbs extends AbstractLbs
 	 */
 	public function lists($offset = 0, $limit = 10)
 	{
-		$params = [
-			'begin' => $offset,
-			'limit' => $limit,
-		];
+		try{
+			$params = [
+				'begin' => $offset,
+				'limit' => $limit,
+			];
 
-		return $this->parseJSON('json', [self::API_POI_LIST, $params]);
+			return $this->parseJSON('json', [self::API_POI_LIST, $params]);
+		}catch (\Exception $e){
+			return ["error_code"=>$e->getCode(),"msg"=>$e->getMessage()];
+		}
 	}
 
 	/**
@@ -138,9 +142,13 @@ class ServiceLbs extends AbstractLbs
 	 */
 	public function delete($poiId)
 	{
-		$params = ['id' => $poiId,'geotable_id' => self::GEOTABLE_ID,'ak'=>self::AK];
+		try{
+			$params = ['id' => $poiId,'geotable_id' => self::GEOTABLE_ID,'ak'=>self::AK];
 
-		return $this->parseJSON('json', [self::API_POI_DEL, $params]);
+			return $this->parseJSON('post', [self::API_POI_DEL, $params]);
+		}catch (\Exception $e){
+			return ["error_code"=>$e->getCode(),"msg"=>$e->getMessage()];
+		}
 	}
 
 	/**
