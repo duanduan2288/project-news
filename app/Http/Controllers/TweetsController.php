@@ -15,6 +15,7 @@ use App\OrderPayBack;
 use App\Services\ServiceLbs;
 use App\Tweets;
 use App\Vote;
+use Illuminate\Contracts\Logging\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 use app\AdminUser;
@@ -35,35 +36,128 @@ class TweetsController extends Controller
 	}
 
 	public function getGeosearch(){
+		$start_time = strtotime(date("Y-m-d"));
+		$filter = "created_at:".$start_time.",".time();
+		$sortby = "created_at:1";
 		$data = $this->requestData;
+		$data["filter"] = $filter;
+		$data["sortby"] = $sortby;
+
 		$service = new ServiceLbs();
-		$data = $service->geosearch($data);
-		if(isset($data["error_code"])){
-			$result = ['code'=>100,'msg'=>$data["msg"]];
+		$ret = $service->geosearch($data);
+		if(isset($ret["error_code"])){
+			$result = ['code'=>100,'msg'=>$ret["msg"]];
 		}else{
-			$result = ['code'=>200,'result'=>$data];
+			$arr = [];
+			foreach($ret["contents"] as $item){
+				if(isset($item["openid"]) && !empty($item["openid"])){
+					$arr[$item["openid"]] = $item;
+				}else{
+					$arr[] = $item;
+				}
+
+			}
+			$ret["contents"] = $arr;
+
+			$result = ['code'=>200,'result'=>$ret];
 		}
 		return response()->json($result);
+	}
+
+	public function postQuit(){
+		$userid = $this->returnUser();
+
 	}
 	/**
 	 * 添加说说
 	 */
 	public function postTweets(){
 		$result = Tweets::create($this->requestData + $this->returnUser());
-		//将说说存到百度lbs
-		$data = $result->toArray();
-		$data["tweet_id"] = $data["id"];
-		$data["created_at"] = strtotime($data["created_at"]);
-		$data["tags"] = "tweets";
-		unset($data["id"]);
-		$service = new ServiceLbs();
-		$res = $service->create($data);
-		if(isset($res["id"])){
-			Tweets::where(["id"=>$result["id"]])->update(["poi_id"=>$res["id"]]);
+		if(null!=$result){
+			//将说说存到百度lbs
+			$data = $result->toArray();
+			$data["tweet_id"] = $data["id"];
+			$data["created_at"] = strtotime($data["created_at"]);
+			$data["tags"] = isset($this->requestData["event_type"])?$this->requestData["event_type"]:"";
+			unset($data["id"]);
+			$service = new ServiceLbs();
+			$res = $service->create($data);
+			if(isset($res["id"])){
+				Tweets::where(["id"=>$result["id"]])->update(["poi_id"=>$res["id"]]);
+			}
+			$return = ['code'=>200,'msg'=>$result];
+		}else{
+			$return = ['code'=>100,'result'=>"发布失败"];
 		}
-		$this->output($result);
+		return response()->json($return);
 	}
 
+	public function postDel(){
+		$result = [
+				'code' => 200,
+				'msg' => '删除成功'
+		];
+		if ($this->_is_admin) {
+			$where = [
+					'id' => $this->requestData['id']
+			];
+			if (!Tweets::where($where)->update(['is_delete' => '1'])) {
+				$result = [
+						'code' => 100,
+						'msg' => '删除失败'
+				];
+			}
+		} else {
+			$where = [
+					'id' => $this->requestData['id']
+			];
+			$where['openid'] = $_SESSION['wechat_user']['id'];
+			if (!Tweets::where($where)->update(['is_delete' => '1'])) {
+				$result = [
+						'code' => 100,
+						'msg' => '删除失败'
+				];
+			}
+		}
+		if($result["code"]==200){
+			$tweet = Tweets::find( $this->requestData['id']);
+			if(null!==$tweet){
+				$service = new ServiceLbs();
+				$data = $service->delete($tweet->poi_id);
+				if(isset($data["error_code"])){
+					Tweets::where($where)->update(['is_delete' => '0']);
+					$result = ['code'=>100,'msg'=>"删除失败"];
+				}else{
+					$result = ['code'=>200,'result'=>"删除成功"];
+				}
+			}
+		}
+		return response()->json($result);
+	}
+	/**
+	 * 获取最后一次说说
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function getLast(){
+		$user = $this->returnUser();
+		$openid = $user["openid"];
+		$where = [
+				'is_display' => '1',
+				'is_delete' => '0',
+				'openid'=>$openid
+		];
+		$list = Tweets::select(['*'])
+				->where($where)
+				->orderBy("id", "desc")
+				->first();
+
+		if(null!=$list){
+			$list = $list->toArray();
+			return $this->output($list);
+		}else{
+			return $this->output("");
+		}
+	}
 	/**
 	 * 获取列表
 	 * @return \Illuminate\Http\JsonResponse
@@ -78,7 +172,7 @@ class TweetsController extends Controller
 				'is_delete' => '0'
 		];
 
-		$list = Tweets::select("id,content,create_at,is_display,openid,avatar,nickname,latitude,longitude")
+		$list = Tweets::select(['*'])
 				->where($where)
 				->orderBy("id", "desc")
 				->skip($start)->take($pagesize)
@@ -132,14 +226,25 @@ class TweetsController extends Controller
 
 		$start = ($page - 1) * $pagesize;
 
-		$openid = "o4utmv0Nli7y29QJmYvorFWr_FH4";
-			//$_SESSION['wechat_user']['id'];
+		$openid =$_SESSION['wechat_user']['id'];
+		$is_admin = 0;
+		if (AdminUser::where('openid', $openid)->first()) {
+			$is_admin = 1;
+		}
+		if($is_admin){
+			//获取所有用户的news
+			$sql = "select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from news as n where is_delete=0";
+			$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from tweets as tw where is_delete=0";
+			$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from questions as qu where is_delete=0";
+			$sql .= " order by created_at desc limit {$start},{$pagesize}";
+		}else{
+			//获取用户的news
+			$sql = "select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from news as n where is_delete=0 and openid='{$openid}'";
+			$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from tweets as tw where is_delete=0 and openid='{$openid}'";
+			$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from questions as qu where is_delete=0 and openid='{$openid}'";
+			$sql .= " order by created_at desc limit {$start},{$pagesize}";
+		}
 
-		//获取用户的news
-		$sql = "select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from news as n where is_delete=0 and openid='{$openid}'";
-		$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from tweets as tw where is_delete=0 and openid='{$openid}'";
-		$sql .= " union all select type,openid,avatar,nickname,content,created_at,updated_at,updated_at,is_display from questions as qu where is_delete=0 and openid='{$openid}'";
-		$sql .= " order by created_at desc limit {$start},{$pagesize}";
 
 		$data = DB::select($sql);
 
