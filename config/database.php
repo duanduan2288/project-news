@@ -58,7 +58,11 @@ return [
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'news'),
             'username' => env('DB_USERNAME', 'root'),
+<<<<<<< HEAD
             'password' => env('DB_PASSWORD', 'itm123@wdw'),
+=======
+            'password' => env('DB_PASSWORD', '123456'),
+>>>>>>> f31fa3279907db8cbd82accd2839f9c4edec8bb3
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',

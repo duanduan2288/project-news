@@ -74,7 +74,6 @@ abstract class AbstractLbs
 		$http = $this->getHttp();
 
 		$contents = $http->parseJSON(call_user_func_array([$http, $method], $args));
-
 		$this->checkAndThrow($contents);
 
 		return $contents;
@@ -94,7 +93,7 @@ abstract class AbstractLbs
 				$contents['message'] = 'Unknown';
 			}
 
-			throw new HttpException($contents['message'], $contents['message']);
+			throw new HttpException($contents['message'], $contents['status']);
 		}
 	}
 }

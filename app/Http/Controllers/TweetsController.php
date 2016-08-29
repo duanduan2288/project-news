@@ -138,23 +138,24 @@ class TweetsController extends Controller
 	 * 获取最后一次说说
 	 * @return \Illuminate\Http\JsonResponse
 	 */
-	public function getLast(){
+	public function getLast()
+	{
 		$user = $this->returnUser();
 		$openid = $user["openid"];
 		$where = [
 				'is_display' => '1',
 				'is_delete' => '0',
-				'openid'=>$openid
+				'openid' => $openid
 		];
 		$list = Tweets::select(['*'])
 				->where($where)
 				->orderBy("id", "desc")
 				->first();
 
-		if(null!=$list){
+		if (null != $list) {
 			$list = $list->toArray();
 			return $this->output($list);
-		}else{
+		} else {
 			return $this->output("");
 		}
 	}
@@ -164,7 +165,7 @@ class TweetsController extends Controller
 	 */
 	public function getIndex(){
 		$page = Request::input("page",1);
-		$pagesize = 10;
+		$pagesize = 6;
 
 		$start = ($page - 1) * $pagesize;
 		$where = [

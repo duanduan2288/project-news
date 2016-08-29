@@ -120,6 +120,7 @@ class NewsController extends Controller
 
 					$list = News::where($where)
 						->orWhereIn('id', $mustShow)
+						->orWhere('is_recommand',1)
 						->orderBy("id", "desc")
 						->skip($start)->take($pagesize)
 						->get()
@@ -134,7 +135,7 @@ class NewsController extends Controller
 						->get()
 						->toArray();
 				} else {
-					$list = Question::where(['is_display'=>'1','openid'	=> $openid])->skip($start)->take($pagesize)
+					$list = Question::where(['is_display'=>'1','openid'	=> $openid])->orWhere('is_recommand',1)->skip($start)->take($pagesize)
 						->orderBy("id", "desc")
 						->get()
 						->toArray();
@@ -245,6 +246,7 @@ class NewsController extends Controller
 		return $this->output($result);
 	}
 
+
 	public function postVote()
 	{
 		$where = [
@@ -252,6 +254,13 @@ class NewsController extends Controller
 			'vote_id' => $this->requestData['id'],
 			'type' => $this->requestData['type']
 		];
+		if(isset($this->requestData["percent"])){
+			$percent = $this->requestData["percent"];
+			unset($this->requestData["percent"]);
+		}else{
+			$percent = 50;
+		}
+
 		//查看是否已经投过票
 		if (Vote::where($where)->get()->toArray()) {
 			$result = [
@@ -261,6 +270,7 @@ class NewsController extends Controller
 
 			return response()->json($result);
 		}
+
 		// 判断是否自己给自己投票
 		$news_id = [
 			'id' => $this->requestData['id']
@@ -320,17 +330,21 @@ class NewsController extends Controller
 		switch ($vote_select) {
 			// 用户评价为还行
 			case 2:
-				if ($model['confirm_status'] == 0) {
+				if($amount>=10000){
 					// 付给提供者
-					$amount1 = 0.5 * $amount;
+					$amount1 = bcsub(95,$percent)*$amount/100;
 					// 退款给购买者
-					$amount2 = 0.5 * $amount;
-				} else {
+					$amount2 = $percent * $amount/100;
+				}else{
 					// 付给提供者
-					$amount1 = 0.5 * $amount;
+					$amount1 = bcsub(100,$percent)*$amount/100;
 					// 退款给购买者
-					$amount2 = 0.45 * $amount;
+					$amount2 = $percent * $amount/100;
 				}
+				Orders::where(['type' => $this->requestData['type'], 'pay_id' => $this->requestData['id'], 'pay_status' => 'PAY_SUCCESS'])->update([
+						'fee_rate'    =>  $percent
+				]);
+
 				break;
 			// 用户评价为很赞
 			case 3:
@@ -1141,6 +1155,131 @@ class NewsController extends Controller
 			$result = ["code"=>200,"media_url"=>$url];
 		}catch (\Exception $e){
 			$result = ["code"=>100,"msg"=>$e->getMessage()];
+		}
+
+		return response()->json($result);
+	}
+	public function getPercent(){
+		$news_id = [
+				'id' => $this->requestData['id']
+		];
+		if ($this->requestData['type'] == 'news') {
+			$model = News::where($news_id)->first()->toArray();
+		} else {
+			$model = Answer::where($news_id)->first()->toArray();
+		}
+
+		$data = [];
+		switch($model['confirm_status']){
+			case 0:
+				$data = [30,40,50,60,70,80];
+				break;
+			case 1:
+				$data = [30,40,50,60,70];
+				break;
+			case 2:
+				$data = [30,40,50];
+				break;
+			case 3:
+				$data = [30,40,50,60];
+				break;
+			case 4:
+				$data = [30,40,50,60,70];
+				break;
+			case 5:
+				$data = [30.40,50,60,70];
+				break;
+			case 6:
+				$data = [30,40,50,60,70,80];
+				break;
+		}
+
+		$result = ['code'=>200,'data'=>$data];
+
+		return response()->json($result);
+	}
+	/**
+	 * 推荐
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function postRecommand(){
+		$result = [
+				'code' => 200,
+				'msg' => '推荐成功'
+		];
+		$is_admin = 0;
+		if (AdminUser::where('openid', $_SESSION['wechat_user']['id'])->first()) {
+			$is_admin = 1;
+		}
+		if ($is_admin) {
+			$where = [
+					'id' => $this->requestData['id']
+			];
+			if($this->requestData['type']=="news"){
+				if (!News::where($where)->update(['is_recommand' => '1'])) {
+					$result = [
+							'code' => 100,
+							'msg' => '推荐失败'
+					];
+				}
+			}else{
+				if (!Question::where($where)->update(['is_recommand' => '1'])) {
+					$result = [
+							'code' => 100,
+							'msg' => '推荐失败'
+					];
+				}
+			}
+
+
+		} else {
+			$result = [
+					'code' => 100,
+					'msg' => '您不是管理员'
+			];
+		}
+
+		return response()->json($result);
+	}
+
+	/***
+	 * 取消推荐
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function postCancelrecommand(){
+		$result = [
+				'code' => 200,
+				'msg' => '取消成功'
+		];
+		$is_admin = 0;
+		if (AdminUser::where('openid', $_SESSION['wechat_user']['id'])->first()) {
+			$is_admin = 1;
+		}
+		if ($is_admin) {
+			$where = [
+					'id' => $this->requestData['id']
+			];
+			if($this->requestData['type']=="news"){
+				if (!News::where($where)->update(['is_recommand' => 0])) {
+					$result = [
+							'code' => 100,
+							'msg' => '推荐失败'
+					];
+				}
+			}else{
+				if (!Question::where($where)->update(['is_recommand' => 0])) {
+					$result = [
+							'code' => 100,
+							'msg' => '推荐失败'
+					];
+				}
+			}
+
+		} else {
+			$result = [
+					'code' => 100,
+					'msg' => '您不是管理员'
+			];
 		}
 
 		return response()->json($result);
