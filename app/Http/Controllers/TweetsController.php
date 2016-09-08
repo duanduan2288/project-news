@@ -36,15 +36,37 @@ class TweetsController extends Controller
 	}
 
 	public function getGeosearch(){
+		$start_time = strtotime(date("Y-m-d"));
+		$filter = "created_at:".$start_time.",".time();
+		$sortby = "created_at:1";
 		$data = $this->requestData;
+		$data["filter"] = $filter;
+		$data["sortby"] = $sortby;
+
 		$service = new ServiceLbs();
-		$data = $service->geosearch($data);
-		if(isset($data["error_code"])){
-			$result = ['code'=>100,'msg'=>$data["msg"]];
+		$ret = $service->geosearch($data);
+		if(isset($ret["error_code"])){
+			$result = ['code'=>100,'msg'=>$ret["msg"]];
 		}else{
-			$result = ['code'=>200,'result'=>$data];
+			$arr = [];
+			foreach($ret["contents"] as $item){
+				if(isset($item["openid"]) && !empty($item["openid"])){
+					$arr[$item["openid"]] = $item;
+				}else{
+					$arr[] = $item;
+				}
+
+			}
+			$ret["contents"] = $arr;
+
+			$result = ['code'=>200,'result'=>$ret];
 		}
 		return response()->json($result);
+	}
+
+	public function postQuit(){
+		$userid = $this->returnUser();
+
 	}
 	/**
 	 * 添加说说
@@ -111,6 +133,31 @@ class TweetsController extends Controller
 			}
 		}
 		return response()->json($result);
+	}
+	/**
+	 * 获取最后一次说说
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function getLast()
+	{
+		$user = $this->returnUser();
+		$openid = $user["openid"];
+		$where = [
+				'is_display' => '1',
+				'is_delete' => '0',
+				'openid' => $openid
+		];
+		$list = Tweets::select(['*'])
+				->where($where)
+				->orderBy("id", "desc")
+				->first();
+
+		if (null != $list) {
+			$list = $list->toArray();
+			return $this->output($list);
+		} else {
+			return $this->output("");
+		}
 	}
 	/**
 	 * 获取列表
