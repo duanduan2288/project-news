@@ -40,6 +40,7 @@ wml.define("you/app/login", function (require, exports) {
       "type": "GET"
       , "url": "/news/user"
       , "dataType": "json"
+      , "async": false
       , "data": {}
       , "beforeSend": function () {
       }
@@ -49,7 +50,7 @@ wml.define("you/app/login", function (require, exports) {
           return;
         }
         ;
-        //location.href = '/news/login'
+        location.href = '/news/login'
       }
       , "error": function () {
       }
@@ -313,13 +314,13 @@ wml.define("you/page/information_pub", function (require, exports) {
             $item.attr('type', 'vedio');
             $item.html('<a href="'+res.data.url+'" class="table col-4 mt20 center p0 img_item left">' +
                 '<span class="ssz-span table-cell align-middle overflow-hidden">' +
-                '<img alt="点击播放" src="' + res.data.imgurl + '"></a></span>');
+                '<img alt="" src="' + res.data.imgurl + '"></a></span>');
 
             //$item.html('<video width="1rem" height="1rem"  src="' + res.data + '" controls="controls">');
           } else {
             $item.attr('type', res.data.file_type);
             $item.html('<a href="'+res.data.url+'" class="table col-4 mt20 center p0 img_item left"><span class="ssz-span table-cell align-middle overflow-hidden">' +
-                '<img alt="点击查看" src="' + res.data.imgurl + '"></span></a>');
+                '<img alt="" src="' + res.data.imgurl + '"></span></a>');
           }
           $input.data('uploadnum', parseInt($input.data('uploadnum')) + 1);
         } else {
@@ -363,6 +364,10 @@ wml.define("you/page/information_pub", function (require, exports) {
       alert('正在上传文件，请稍后发布')
       return;
     }
+    if (audioManager.isVoiceUploading()) {
+      alert('语音正在上传中, 请稍后发布');
+      return;
+    }
     var _this = this;
     var content = $('[name=content]').val()
     , content_img = []
@@ -379,11 +384,13 @@ wml.define("you/page/information_pub", function (require, exports) {
       $('[name=content]').focus();
       return;
     }
-    if (!qrcode_content) {
+    var voice_data = audioManager.getVoiceData();
+    if (!qrcode_content && voice_data.length == 0) {
       alert('请输入现场信息支付部分文字');
       $('[name=qrcode_content]').focus();
       return;
-    } else if (qrcode_content.length > 2000) {
+    }
+    if (qrcode_content && qrcode_content.length > 2000) {
       alert('现场信息支付部分文字限制2000个！');
       $('[name=qrcode_content]').focus()
       return;
@@ -441,6 +448,7 @@ wml.define("you/page/information_pub", function (require, exports) {
       , event_type: $('.event_type_wrap .price_item.act').attr('data-value')
       , confirm_status: $('[name=confirm_status]:checked').length
       ,file_number:filenumber
+      , voice_data: voice_data
     };
 
     $.ajax({
@@ -467,6 +475,455 @@ wml.define("you/page/information_pub", function (require, exports) {
       }
     })
   });
-
+  var jsApiList = [
+    'onMenuShareTimeline',
+    'onMenuShareAppMessage',
+    'onMenuShareQQ',
+    'onMenuShareWeibo',
+    'onMenuShareQZone',
+    'startRecord',
+    'stopRecord',
+    'onVoiceRecordEnd',
+    'playVoice',
+    'pauseVoice',
+    'stopVoice',
+    'onVoicePlayEnd',
+    'uploadVoice',
+    'downloadVoice',
+    'chooseImage',
+    'previewImage',
+    'uploadImage',
+    'downloadImage',
+  ];
+  function wxShareConfig() {
+    $.ajax({
+      type: "POST",
+      url: "/news/share",
+      dataType: "json",
+      data: {
+        url: location.href.split('#')[0]
+      },
+      success: function(res){
+        res.jsApiList= jsApiList;
+        wx.config(res);
+        wx.ready(function(){
+          console.log('jssdk config ready');
+        });
+        wx.error(function(){
+          console.log('jssdk config error');
+        });
+      },
+      error: function(){
+        console.log('获取jssdk配置失败');
+      }
+    });
+  }
+  wxShareConfig();
+  var audioManager = {
+    limitCount: 3,
+    list: [],
+    current: null,
+    $els: {
+      addButton: $('#audioAddButton'),
+      recordWrap: $('#audioRecordWrap'),
+      startWidget: $('#audioRecordWrap .start_widget'),
+      recordWidget: $('#audioRecordWrap .recording_widget'),
+      startRecordButton: $('#audioRecordWrap .start_widget .start'),
+      sendButton: $('#audioRecordWrap .recording_widget .send'),
+      cancelButton: $('#audioRecordWrap .cancel'),
+      durationSpan: $('#audioRecordWrap .recording_widget .duration'),
+      audioListWrap: $('#audioListWrap'),
+      audioAddWrap: $('#audioAddWrap'),
+      ellipsisSpan: $('#audioRecordWrap .recording_widget .ellipsis'),
+    },
+    timer: null,
+    showRecordWrap: function() {
+      var $els = this.$els;
+      $els.recordWrap.show();
+      $els.startWidget.slideDown();
+      $els.recordWidget.hide();
+    },
+    hideRecordWrap: function() {
+      var $els = this.$els;
+      $els.startWidget.hide();
+      $els.recordWidget.hide();
+      $els.recordWrap.hide();
+      this.removeTimer();
+    },
+    removeTimer: function() {
+      if (!this.timer) return;
+      clearInterval(this.timer);
+      this.timer = null;
+    },
+    showRecordWidget: function(){
+      var $els = this.$els;
+      var _this = this;
+      $els.ellipsisSpan.text('. . .');
+      $els.durationSpan.text('0');
+      $els.startWidget.hide();
+      $els.recordWidget.show();
+      this.removeTimer();
+      var duration = 0;
+      this.timer = setInterval(function(){
+        duration++;
+        if (duration > 60) {
+          $els.ellipsisSpan.text('. . .');
+          $els.durationSpan.text('60');
+          return _this.removeTimer();
+        }
+        $els.durationSpan.text(duration);
+        var ellipsisText = $els.ellipsisSpan.text();
+        if (ellipsisText.length < 5) {
+          $els.ellipsisSpan.text(ellipsisText + ' .');
+        } else {
+          $els.ellipsisSpan.text('.');
+        }
+      }, 1000);
+    },
+    isVoiceUploading: function() {
+      for (var i in this.list) {
+        var audio = this.list[i];
+        if (!audio.deleted && audio.isUploading) {
+          return true;
+        }
+      }
+      return false;
+    },
+    getVoiceData: function() {
+      var arr = [];
+      for (var i in this.list) {
+        var audio = this.list[i];
+        if (!audio.deleted && audio.uploadSuccess && audio.mediaUrl) {
+          arr.push({
+            media_url: audio.mediaUrl,
+            media_duration: audio.duration
+          });
+        }
+      }
+      return arr;
+    },
+    addAudioCell: function(audio) {
+      if (!audio) return;
+      var _this = this;
+      this.list.push(audio);
+      var index = this.list.length-1;
+      var $img = $('<img/>').attr('src', audio.getImageLink());
+      var $duration = $('<span/>').addClass('duration').text(audio.duration + '"');
+      var $symbol = $('<span/>').addClass('symbol').text('>>>');
+      var $delButton = $('<span/>').addClass('button').text('取消');
+      var $cell = $('<div/>').addClass('audio_cell').append($img).append($duration).append($symbol).append($delButton);
+      this.$els.audioListWrap.append($cell);
+      audio.index = index;
+      audio.$el = $cell;
+      audio.timer = null;
+      $cell.on('PlayStart', function(){
+        if (audio.timer) {
+          clearInterval(audio.timer);
+        }
+        audio.timer = setInterval(function(){
+          var text = $symbol.text();
+          if (text.length < 3) {
+            $symbol.text(text+'>');
+          } else {
+            $symbol.text('>');
+          }
+        }, 400);
+      }).on('PlayStop', function(){
+        if (audio.timer) {
+          clearInterval(audio.timer);
+          audio.timer = null;
+        }
+        $symbol.text('>>>');
+      });
+      $cell.click(function() {
+        _this.playOrPauseAudio(audio);
+      });
+      $delButton.click(function(event){
+        event.stopPropagation();
+        if (confirm('确定删除?')) {
+          _this.removeAudioCell(audio);
+        }
+      });
+      this.onAudioCellChange();
+    },
+    playOrPauseAudio: function(audio){
+      for (var i in this.list) {
+        var _audio = this.list[i];
+        if (audio != _audio) {
+          _audio.stopVoice();
+        }
+      }
+      audio.playOrPause();
+    },
+    removeAudioCell: function(audio) {
+      if (!audio) return;
+      audio.deleted = true;
+      if (audio.timer) {
+        clearInterval(audio.timer);
+        audio.timer = null;
+      }
+      if (audio.localId && !audio.paused) {
+        audio.paused = true;
+        wx.stopVoice({
+          localId: audio.localId,
+        });
+      }
+      if (audio.$el) {
+        audio.$el.remove();
+        this.onAudioCellChange();
+      }
+    },
+    stopAllVoice: function() {
+      for (var i in this.list) {
+        var audio = this.list[i];
+        if (audio.localId && !audio.paused) {
+          audio.paused = true;
+          wx.stopVoice({
+            localId: audio.localId,
+          });
+        }
+      }
+    },
+    getAudioCellCount: function() {
+      var total = 0;
+      for (var i in this.list) {
+        if (!this.list[i].deleted) {
+          total ++;
+        }
+      }
+      return total;
+    },
+    onAudioCellChange: function() {
+      var total = this.getAudioCellCount();
+      var $els = this.$els;
+      var $p = $els.audioAddWrap.children('p');
+      if (total <= 0) {
+        $els.addButton.detach().appendTo($els.audioAddWrap.siblings('h2'));
+        $p.text('');
+      } else if (total >= this.limitCount) {
+        $els.addButton.detach().prependTo($els.audioAddWrap);
+        $p.text('');
+      } else {
+        $els.addButton.detach().prependTo($els.audioAddWrap);
+        $p.text('再说一段');
+      }
+    },
+    init: function() {
+      var $els = this.$els;
+      var _this = this;
+      $els.addButton.click(function() {
+        var $p = $els.audioAddWrap.children('p');
+        if (_this.getAudioCellCount() < _this.limitCount) {
+          _this.showRecordWrap();
+          $p.show();
+        } else {
+          $p.text('最多录'+_this.limitCount+'段语音');
+          $p.show();
+          $p.fadeOut(2000);
+        }
+      });
+      $els.startRecordButton.click(function() {
+        _this.showRecordWidget();
+        _this.current = new AudioItem($els);
+        _this.current.startRecord();
+      });
+      $els.cancelButton.click(function() {
+        _this.hideRecordWrap();
+        var audio = _this.current;
+        if ( audio) {
+          audio.startTime = null;
+          if (audio.state == audioStates.isRecording) {
+            wx.stopRecord();
+          }
+        }
+        _this.current = null;
+      });
+      $els.sendButton.click(function() {
+        var audio = _this.current;
+        if (!audio) return;
+        _this.hideRecordWrap();
+        _this.addAudioCell(audio);
+        if (audio.localId) {
+          audio.uploadRecord();
+        } else {
+          audio.stopAndUploadRecord();
+        }
+      });
+    },
+  };
+  audioManager.init();
+  var audioStates = {
+    beforeRecord: 'beforeRecord',
+    isRecording: 'isRecording',
+    afterRecorded: 'afterRecorded',
+    isStopRecording: 'isStopRecording',
+  };
+  function getSeconds(startDate, endDate) {
+    return Math.round((endDate.getTime() - startDate.getTime())/1000);
+  }
+  function AudioItem($els) {
+    this.state= audioStates.beforeRecord;
+    this.startTime= null;
+    this.endTime= null;
+    this.localId= null;
+    this.duration= 0;
+    this.mediaUrl = null;
+    this.serverId = null;
+    this.isUploading = false;
+    this.uploadSuccess = false;
+    this.index = -1;
+    this.paused = true;
+    this.deleted = false;
+    this.$el = null;
+    this.$els = $els;
+    this.timer = null;
+  }
+  AudioItem.prototype = {
+    playOrPause: function() {
+      if (!this.localId) return;
+      var _this = this;
+      if (this.paused) {
+        this.onPlayStart();
+        wx.playVoice({
+          localId: this.localId,
+          complete: function(){}
+        });
+        wx.onVoicePlayEnd({
+          complete: function(){
+            _this.onPlayStop();
+          },
+        });
+      } else {
+        this.onPlayStop();
+        wx.pauseVoice({
+            localId: this.localId,
+            complete: function() {}
+        });
+      }
+    },
+    onPlayStart: function(){
+      this.paused = false;
+      if (this.$el) {
+        this.$el.trigger('PlayStart');
+      }
+    },
+    onPlayStop: function(){
+      this.paused = true;
+      if (this.$el) {
+        this.$el.trigger('PlayStop');
+      }
+    },
+    stopVoice: function() {
+      if (this.localId) {
+        wx.stopVoice({
+          localId: this.localId,
+        });
+      }
+      this.onPlayStop();
+    },
+    getImageLink: function() {
+      var baseUrl = 'img/audio/';
+      if (this.duration <= 20) {
+        return baseUrl + 'audio2_1-20.jpg';
+      }
+      if (this.duration <= 30) {
+        return baseUrl + 'audio2_21-30.jpg';
+      }
+      if (this.duration <= 40) {
+        return baseUrl + 'audio2_31-40.jpg';
+      }
+      if (this.duration <= 50) {
+        return baseUrl + 'audio2_41-50.jpg';
+      }
+      return baseUrl + 'audio2_51-60.jpg';
+    },
+    startRecord: function() {
+      var _this = this;
+      wx.startRecord();
+      wx.onVoiceRecordEnd({
+          complete: function (res) {
+            _this.localId = res.localId;
+            _this.endTime = new Date();
+            _this.state = audioStates.afterRecorded;
+            _this.$els.sendButton.trigger('click');
+          }
+      });
+      this.startTime = new Date();
+      this.state = audioStates.isRecording;
+      this.countDuration();
+    },
+    countDuration: function() {
+      if (!this.startTime) {
+        this.duration = 0;
+        return;
+      }
+      var endTime = this.endTime || new Date();
+      this.duration = Math.round(getSeconds(this.startTime, endTime));
+      if (this.duration >= 60) {
+        this.duration = 60;
+      }
+      if (!this.endTime) {
+        setTimeout(this.countDuration.bind(this), 1000);
+      }
+    },
+    stopAndUploadRecord: function() {
+      var _this = this;
+      this.state = audioStates.isStopRecording;
+      this.isUploading = true;
+      wx.stopRecord({
+          success: function (res) {
+              _this.localId = res.localId;
+              _this.state = audioStates.afterRecorded;
+              _this.endTime = new Date();
+              _this.uploadRecord();
+          },
+      });
+    },
+    uploadRecord: function() {
+      if (!this.localId) return;
+      this.isUploading = true;
+      var _this = this;
+      wx.uploadVoice({
+          localId: this.localId,
+          isShowProgressTips: 1,
+          success: function (res) {
+            _this.serverId = res.serverId;
+            $.ajax({
+              type: "POST",
+              url: "/news/wechatmedia",
+              dataType: "json",
+              async: true,
+              data: {
+                media_id: _this.serverId
+              },
+              success: function(res) {
+                if (res.code == 200) {
+                  _this.uploadSuccess = true;
+                  _this.isUploading = false;
+                  _this.mediaUrl = res.media_url;
+                } else {
+                  _this.onUploadError();
+                }
+              },
+              error: function() {
+                _this.onUploadError();
+              },
+            });
+          },
+          error: function() {
+            _this.onUploadError();
+          },
+      });
+    },
+    onUploadError: function() {
+      this.isUploading = false;
+      this.uploadSuccess = false;
+      audioManager.removeAudioCell(this);
+      alert('抱歉，语音上传失败，请再说一次吧');
+    },
+  };
+  window.onpagehide = function(){
+    audioManager.stopAllVoice();
+  };
 });
 wml.run("you/page/information_pub");

@@ -39,6 +39,7 @@ function login(succ_cbk){
 		"type":"GET"
 		,"url":"/news/user"
 		,"dataType":"json"
+		, "async": false
 		,"data":{}
 		,"beforeSend":function(){}
 		,"success":function(res){
@@ -57,6 +58,9 @@ exports.login = login
 });
 wml.define("you/app/link", function(require, exports){
 var isDebug = false;
+var extra = '_=' + new Date().getTime();
+var andExtra = '&' + extra;
+var qExtra = '?' + extra;
 
 function _formatDebug(url){
 	return url.replace(/\//g, '_') +'.html';
@@ -67,21 +71,21 @@ exports.inforDetail = function(id){
 	if(!isDebug){
 		url = _formatDebug(url)
 	}
-	return '/'+url+'?id='+id
+	return '/'+url+'?id='+id + andExtra;
 }
 exports.inforList = function(){
 	var url = 'information/list'
 	if(!isDebug){
 		url = _formatDebug(url)
 	}
-	return '/'+url
+	return '/'+url + qExtra;
 }
 exports.inforPub = function(){
 	var url = 'information/pub'
 	if(!isDebug){
 		url = _formatDebug(url)
 	}
-	return '/'+url
+	return '/'+url + qExtra;
 }
 
 exports.questionList = function(){
@@ -89,7 +93,7 @@ exports.questionList = function(){
 	if(!isDebug){
 		url = _formatDebug(url)
 	}
-	return '/'+url
+	return '/'+url + qExtra;
 }
 
 exports.questionDetail = function(id){
@@ -97,21 +101,21 @@ exports.questionDetail = function(id){
 	if(!isDebug){
 		url = _formatDebug(url)
 	}
-	return '/'+url+'?id='+id
+	return '/'+url+'?id='+id + andExtra;
 }
 exports.questionPub = function(){
 	var url = 'question/pub'
 	if(!isDebug){
 		url = _formatDebug(url)
 	}
-	return '/'+url
+	return '/'+url + qExtra;
 }
 exports.aboutus = function(){
 	var url = 'welcome/aboutus'
 	if(!isDebug){
 		url = _formatDebug(url)
 	}
-	return '/'+url
+	return '/'+url + qExtra;
 }
 
 });
@@ -178,13 +182,15 @@ var menuData = [
 ]
 $('.menu_list').html(menu(menuData))
 
-$('.menu_btn').on('click', function(event) {
+$('.header_wrap').on('click', function(event) {
 	event.preventDefault();
 	$('#intro_page').show();
+	$('body').addClass('modal-open');
 	event.stopPropagation();
 })
 $('#intro_page .close').click(function(){
 	$('#intro_page').hide();
+	$('body').removeClass('modal-open');
 });
 $(window).on('click', function(event) {
 	if($(this.target).parents('.menu_wrap').length===0){
@@ -332,8 +338,14 @@ $('.tab_wrap').on('click', '[link-type]', function(event) {
 	var linkFn = $(this).attr('link-type')
 	location.href =gotoLink[linkFn]()
 });
+$('#intro_page .icon').click(function(){
+      $('#intro_page').hide();
+      $('body').removeClass('modal-open');
+    });
 
-
+$('.show-wenwen-layer').click(function () {
+	$('.wenwen-layer').toggle();
+})
 
 });
 wml.run("you/page/information_list");

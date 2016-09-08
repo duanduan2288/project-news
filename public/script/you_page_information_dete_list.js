@@ -39,6 +39,7 @@ function login(succ_cbk){
 		"type":"GET"
 		,"url":"/news/user"
 		,"dataType":"json"
+		, "async": false
 		,"data":{}
 		,"beforeSend":function(){}
 		,"success":function(res){

@@ -40,6 +40,7 @@ wml.define("you/app/login", function (require, exports) {
       "type": "GET"
       , "url": "/news/user"
       , "dataType": "json"
+      , "async": false
       , "data": {}
       , "beforeSend": function () {
       }
@@ -148,63 +149,66 @@ wml.define("component/shareTmp", function (require, exports) {
   }
 
 });
-wml.define("you/app/link", function (require, exports) {
+wml.define("you/app/link", function(require, exports){
   var isDebug = false;
+  var extra = '_=' + new Date().getTime();
+  var andExtra = '&' + extra;
+  var qExtra = '?' + extra;
 
-  function _formatDebug(url) {
-    return url.replace(/\//g, '_') + '.html';
+  function _formatDebug(url){
+    return url.replace(/\//g, '_') +'.html';
   }
 
-  exports.inforDetail = function (id) {
+  exports.inforDetail = function(id){
     var url = 'information/detail'
-    if (!isDebug) {
+    if(!isDebug){
       url = _formatDebug(url)
     }
-    return '/' + url + '?id=' + id
+    return '/'+url+'?id='+id + andExtra;
   }
-  exports.inforList = function () {
+  exports.inforList = function(){
     var url = 'information/list'
-    if (!isDebug) {
+    if(!isDebug){
       url = _formatDebug(url)
     }
-    return '/' + url
+    return '/'+url + qExtra;
   }
-  exports.inforPub = function () {
+  exports.inforPub = function(){
     var url = 'information/pub'
-    if (!isDebug) {
+    if(!isDebug){
       url = _formatDebug(url)
     }
-    return '/' + url
+    return '/'+url + qExtra;
   }
 
-  exports.questionList = function () {
+  exports.questionList = function(){
     var url = 'question/list'
-    if (!isDebug) {
+    if(!isDebug){
       url = _formatDebug(url)
     }
-    return '/' + url
+    return '/'+url + qExtra;
   }
 
-  exports.questionDetail = function (id) {
+  exports.questionDetail = function(id){
     var url = 'question/detail'
-    if (!isDebug) {
+    if(!isDebug){
       url = _formatDebug(url)
     }
-    return '/' + url + '?id=' + id
+    return '/'+url+'?id='+id + andExtra;
   }
-  exports.questionPub = function () {
+  exports.questionPub = function(){
     var url = 'question/pub'
-    if (!isDebug) {
+    if(!isDebug){
       url = _formatDebug(url)
     }
-    return '/' + url
+    return '/'+url + qExtra;
   }
-  exports.aboutus = function () {
+  exports.aboutus = function(){
     var url = 'welcome/aboutus'
-    if (!isDebug) {
+    if(!isDebug){
       url = _formatDebug(url)
     }
-    return '/' + url
+    return '/'+url + qExtra;
   }
 
 });
@@ -293,26 +297,42 @@ wml.define("you/page/information_detail", function (require, exports) {
   var detail_id = urlHandler.getParam(location.href, 'id')
     , detail_type = 'news'
 
+  function forceReload() {
+    window.location.href = location.origin + location.pathname + '?id=' + detail_id + '&_=' + new Date().getTime();
+  }
+
   $('.main_container').on('click', '.open_btn', function (event) {
     //支付刷新
     event.preventDefault();
     wxpay.callPay('news', detail_id, $('[name=q_price]').val(), function (err, res) {
-      location.reload();
+      forceReload();
       return;
     })
   }).on('click', '.ssz-container [data-value], .opt_wrap [data-value]', function (event) {
+    var $voteContainer = $(this).closest('.js-vote-container');
+    var $paybackSelectWrap = $voteContainer.find('.js-payback-select-wrap');
+    var voteValue = $(this).data('value');
+    var isSubmitButton = $(this).data('submit');
     //投票
     // 购买后才能进行评价，否则点击无效
     if ($('.open_btn').length > 0) {
       return false;
     }
-    if ($(this).parent().attr('data-me') == 1 || $(this).parent().attr('data-vote-value') != 0) {
+    if ($voteContainer.data('me') == 1 || $voteContainer.data('vote-value') != 0) {
       return false;
     }
-    if ($(this).attr('data-value') == 1 && $('#cannot-click').length > 0) {
+    if (voteValue == 2) {
+      if (!isSubmitButton) {
+        return $paybackSelectWrap.toggle();
+      }
+    } else {
+      $paybackSelectWrap.hide();
+    }
+    if ($(this).data('value') == 1 && $voteContainer.data('confirm-status') == 2) {
       alert('此为很赞信息，不能进行此种评价!');
       return;
     }
+    
     if (!confirm('确认提交评价吗？')) {
       return false;
     }
@@ -320,33 +340,38 @@ wml.define("you/page/information_detail", function (require, exports) {
     if (this.isDoing) return;
     var _this = this
     event.preventDefault();
+    var paybackCount = isSubmitButton ? parseInt($paybackSelectWrap.find('.js-payback-select').val()) : 0;
     var val = $(this).attr('data-value')
+    var params = {
+      id: detail_id,
+      type: detail_type,
+      vote: val,
+    };
+    if (paybackCount > 0) {
+      params.percent = paybackCount;
+    }
     $.ajax({
       url: '/news/vote',
       type: 'post',
       dataType: 'json',
-      data: {
-        id: detail_id
-        , type: detail_type
-        , vote: val
-      },
+      data: params,
       beforeSend: function () {
         _this.isDoing = true;
       },
       success: function (res) {
-        if (res.code == 101 || res.code == 102) {
-          console.log(res.msg);
-          return;
-        }
         alert(res.msg)
         if (res.code == 200) {
-          $(_this).parent().children('div').eq(4-val-1).find('img').attr('src', './img/0' + (4 - val) + '.png');
+          $paybackSelectWrap.hide();
+          if (val == 2) {
+            $voteContainer.find('[data-value="2"] .js-vote-text').text('已申诉退款'+paybackCount+'%');
+          }
+          $voteContainer.find('[data-value="'+val+'"] img').attr('src', './img/0' + (4 - val) + '.png');
           $ele = $('#ssz-data-' + val);
           $ele.html(parseInt($ele.html()) + 1);
-          $(_this).parent().attr('data-vote-value', val);
-          var price = $(_this).parent().data('price') ? $(_this).parent().data('price') : 0;
+          $voteContainer.attr('data-vote-value', val);
+          var price = $voteContainer.data('price') ? $voteContainer.data('price') : 0;
           if (val == 1 && price >= 1) {
-            location.reload();
+            forceReload();
           }
         }
       },
@@ -424,7 +449,7 @@ wml.define("you/page/information_detail", function (require, exports) {
       , "success": function (res) {
         if (res.code == 200) {
           history.back();
-          location.reload();
+          forceReload();
         }
       }
       , "error": function (e) {
@@ -442,6 +467,30 @@ wml.define("you/page/information_detail", function (require, exports) {
     }
     $hint.text(limit-len);
   }
+  function isImage(fileName) {
+    var reg = /\.(gif|jpg|jpeg|png|bmp)$/;
+    return reg.test(fileName.toLowerCase());
+  }
+  var imageList = [];
+  function handleData(obj) {
+    var fields = ['thumb', 'content_img'];
+    $.each(fields, function(index, item){
+      obj[item] = $.map(obj[item], function(val, key){
+        var $a = $(val);
+        var href = $a.attr('href');
+        if (isImage(href)) {
+          imageList.push(href);
+          $a.attr('data-href', href);
+          $a.attr('data-preview-image', 1);
+          $a.attr('href', 'javascript:void(0);');
+          return $a.prop('outerHTML');
+        } else {
+          return val;
+        }
+      });
+    });
+    obj.audio_file_count = obj.voice_data ? obj.voice_data.length : 0;
+  }
 
 //init
   $.ajax({
@@ -457,10 +506,17 @@ wml.define("you/page/information_detail", function (require, exports) {
     , "success": function (res) {
       if (res.code == 200) {
         var item = res.data[0]
+        handleData(item);
         var html = shareTmp('detail_tpl', {
           item: item
         })
         $('.main_container').html(html).before(topBack(gotoLink.inforList(), item.nickname, item.avatar, item.created_at));
+        $('.main_container a[data-preview-image]').click(function(){
+          wx.previewImage({
+              current: $(this).data('href'),
+              urls: imageList,
+          });
+        });
         /*
         if (!item.is_me || item.is_me && item.confirm_status != 0) {
           var a = ['', '小丫鉴定中', '小丫觉得很赞', '小丫觉得有效', '小丫不确定', '小丫觉得部分不确定', '小丫觉得扯淡'];
@@ -472,7 +528,7 @@ wml.define("you/page/information_detail", function (require, exports) {
               $.post('/news/update', {type: 'news', id: detail_id, 'confirm_status': 1}, function(data) {
                 if (data.code == 200) {
                   alert('申请鉴定成功！');
-                  location.reload();
+                  forceReload();
                 } else {
                   alert('程序开了个小差...');
                 }
@@ -481,8 +537,8 @@ wml.define("you/page/information_detail", function (require, exports) {
           });
         }
         */
+        var a = ['', '小丫鉴定中', '小丫觉得很赞', '小丫觉得有效', '小丫不确定', '小丫部分不确定', '小丫觉得无效'];
         if (item.confirm_status != 0) {
-          var a = ['', '小丫鉴定中', '小丫觉得很赞', '小丫觉得有效', '小丫不确定', '小丫部分不确定', '小丫觉得无效'];
           $('.confirm_status_tip').html('<span style="color:orange;">丫</span><span style="color:#48abff;">丫</span>现场信息审核：本条信息'+ a[item.confirm_status]);
         } else if (item.is_me && item.price > 0) {
           $('.confirm_status_tip').text('申请小丫鉴定').addClass('ssz-btn');
@@ -490,8 +546,8 @@ wml.define("you/page/information_detail", function (require, exports) {
             if (confirm('确定申请小丫鉴定吗？')) {
               $.post('/news/update', {type: 'news', id: detail_id, 'confirm_status': 1}, function(data) {
                 if (data.code == 200) {
+                  $('.confirm_status_tip').off('click').removeClass('ssz-btn').html('<span style="color:orange;">丫</span><span style="color:#48abff;">丫</span>现场信息审核：本条信息'+ a[1]);
                   alert('申请鉴定成功！');
-                  location.reload();
                 } else {
                   alert('程序开了个小差...');
                 }
@@ -568,7 +624,7 @@ wml.define("you/page/information_detail", function (require, exports) {
             , success: function (res) {
               if (res.code == 200) {
                 alert('申请信息失实已提交，请等待审核...');
-                location.reload();
+                forceReload();
                 // location.href = gotoLink.inforDetail(res.data.id)
                 // alert(res.msg);
               } else {
@@ -619,13 +675,13 @@ wml.define("you/page/information_detail", function (require, exports) {
                   $item.attr('type', 'video');
                   $item.html('<a href="'+res.data.url+'" class="table col-4 mt20 center p0 img_item left">' +
                       '<span class="ssz-span table-cell align-middle overflow-hidden">' +
-                      '<img alt="点击播放" src="' + res.data.imgurl + '"></a></span>');
+                      '<img alt="" src="' + res.data.imgurl + '"></a></span>');
 
                   //$item.html('<video width="1rem" height="1rem"  src="' + res.data + '" controls="controls">');
                 } else {
                   $item.attr('type', 'image');
                   $item.html('<a href="'+res.data.url+'" class="table col-4 mt20 center p0 img_item left"><span class="ssz-span table-cell align-middle overflow-hidden">' +
-                      '<img alt="点击查看" src="' + res.data.imgurl + '"></span></a>');
+                      '<img alt="" src="' + res.data.imgurl + '"></span></a>');
                 }
               } else {
                 alert(res.msg)
@@ -672,6 +728,50 @@ wml.define("you/page/information_detail", function (require, exports) {
           $('#shishi-auth').hide();
         });
 
+        var activeAudioCell = null;
+        $('.audio_cell .symbol').on('PlayStart', function(){
+          if (this.timer) {
+            clearInterval(this.timer);
+          }
+          var $symbol = $(this);
+          this.timer = setInterval(function(){
+            var text = $symbol.text();
+            if (text.length < 3) {
+              $symbol.text(text+'>');
+            } else {
+              $symbol.text('>');
+            }
+          }, 400);
+        }).on('PlayStop', function(){
+          if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+          }
+          $(this).text('>>>');
+        });
+
+        $('.audio_cell audio').on('play', function(){
+          $(this).siblings('.symbol').trigger('PlayStart');
+        }).on('pause ended', function(){
+          $(this).siblings('.symbol').trigger('PlayStop');
+        });
+
+        $('.audio_cell').click(function() {
+          var audioDom;
+          if (activeAudioCell && activeAudioCell != this ) {
+            audioDom = $(activeAudioCell).find('audio')[0];
+            audioDom.pause();
+            audioDom.currentTime = 0;
+          }
+          activeAudioCell = this;
+          audioDom = $(this).find('audio')[0];
+          if (audioDom.paused) {
+            audioDom.play();
+          } else {
+            audioDom.pause();
+          }
+        });
+
         // var $eles = $('.ssz-p-2 a');
         // $eles.height($eles.width());
         // $('.ssz-p-2 a span').height($eles.width());
@@ -712,9 +812,11 @@ wml.define("you/page/information_detail", function (require, exports) {
         $('.show_after_loaded').show();
         $('#intro_btn').click(function(){
           $('#intro_page').show();
+          $('body').addClass('modal-open');
         });
-        $('#intro_page .close').click(function(){
+        $('#intro_page .icon').click(function(){
           $('#intro_page').hide();
+          $('body').removeClass('modal-open');
         });
         wxShareConfig(item);
       } else {
@@ -733,8 +835,7 @@ wml.define("you/page/information_detail", function (require, exports) {
     $('.tip').html(msg)
   }
   function wxShareConfig(item) {
-    var price = item.price > 0 ? '开价'+item.price+'元' : '公开';
-    var title = item.nickname+'发布了'+price+'的现场'+item.event_type+'信息，快来看啊';
+    var title = item.price > 0 ? item.nickname+'在'+item.event_type+'现场：我有现场要发布，看了不满你退钱' : item.nickname+'有'+item.event_type+'现场公开发布';
     var shareConfig = {
       title: title,
       imgUrl: item.avatar || window.location.origin+'/img/share_avatar.png'
@@ -747,6 +848,7 @@ wml.define("you/page/information_detail", function (require, exports) {
         url: location.href.split('#')[0]
       },
       success: function(res){
+        res.jsApiList.push('previewImage');
         wx.config(res);
         wx.ready(function(){
           wx.onMenuShareAppMessage(shareConfig);

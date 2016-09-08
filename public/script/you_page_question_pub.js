@@ -151,6 +151,7 @@ wml.define("you/app/login", function (require, exports) {
       "type": "GET"
       , "url": "/news/user"
       , "dataType": "json"
+      , "async": false
       , "data": {}
       , "beforeSend": function () {
       }
