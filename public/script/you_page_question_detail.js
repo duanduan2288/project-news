@@ -334,13 +334,13 @@ wml.define("you/page/question_detail", function (require, exports) {
       return false;
     }
     if (voteValue == 1 && confirmStatus == 2) {
-      alert('此为很赞信息，不能进行此种评价!');
+      alert('此为很好信息，不能进行此种评价!');
       return;
     }
     
     if (!confirm('确认提交评价吗？')) {
       return false;
-    }
+    }s
     var __id = $voteContainer.attr('data-id');
     if (this.isDoing) return;
     var _this = this;

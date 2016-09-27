@@ -380,7 +380,7 @@
 			}
 			money = parseInt(money, 10);
 			if (isNaN(money) || money < 0) {
-				return alert('请填写正确的打赏金额');
+				return alert('请填写正确的DS金额');
 			}
 			var params = {
 				reply: reply,

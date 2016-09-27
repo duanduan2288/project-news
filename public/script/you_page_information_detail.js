@@ -329,7 +329,7 @@ wml.define("you/page/information_detail", function (require, exports) {
       $paybackSelectWrap.hide();
     }
     if ($(this).data('value') == 1 && $voteContainer.data('confirm-status') == 2) {
-      alert('此为很赞信息，不能进行此种评价!');
+      alert('此为很好信息，不能进行此种评价!');
       return;
     }
     
@@ -519,7 +519,7 @@ wml.define("you/page/information_detail", function (require, exports) {
         });
         /*
         if (!item.is_me || item.is_me && item.confirm_status != 0) {
-          var a = ['', '小丫鉴定中', '小丫觉得很赞', '小丫觉得有效', '小丫不确定', '小丫觉得部分不确定', '小丫觉得扯淡'];
+          var a = ['', '小丫鉴定中', '小丫觉得很好', '小丫觉得有效', '小丫不确定', '小丫觉得部分不确定', '小丫觉得扯淡'];
           $('.confirm_status_tip').text(a[item.confirm_status]).css('display', 'block').addClass('ssz-ddd');
         } else {
           $('.confirm_status_tip').text('申请小丫鉴定').addClass('ssz-btn');
@@ -537,7 +537,7 @@ wml.define("you/page/information_detail", function (require, exports) {
           });
         }
         */
-        var a = ['', '小丫鉴定中', '小丫觉得很赞', '小丫觉得有效', '小丫不确定', '小丫部分不确定', '小丫觉得无效'];
+        var a = ['', '小丫鉴定中', '小丫觉得很好', '小丫觉得有效', '小丫不确定', '小丫部分不确定', '小丫觉得无效'];
         if (item.confirm_status != 0) {
           $('.confirm_status_tip').html('<span style="color:orange;">丫</span><span style="color:#48abff;">丫</span>现场信息审核：本条信息'+ a[item.confirm_status]);
         } else if (item.is_me && item.price > 0) {

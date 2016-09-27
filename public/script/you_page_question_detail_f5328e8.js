@@ -326,7 +326,7 @@ wml.define("you/page/question_detail", function (require, exports) {
       return false;
     }
     if ($(this).attr('data-value') == 1 && $('#cannot-click').length > 0) {
-      alert('此为很赞信息，不能进行此种评价!');
+      alert('此为很好信息，不能进行此种评价!');
       return;
     }
     if (!confirm('确认提交评价吗？')) {
@@ -1113,7 +1113,7 @@ wml.define("you/page/question_detail", function (require, exports) {
   ];
   function wxShareConfig(item) {
     var shareConfig = {
-      title: item.nickname+'打赏'+item.price+'元提问了现场'+item.event_type+'问题，有谁到场过？',
+      title: item.nickname+'DS'+item.price+'元提问了现场'+item.event_type+'问题，有谁到场过？',
       imgUrl: item.avatar || window.location.origin+'/img/share_avatar.png'
     };
     $.ajax({

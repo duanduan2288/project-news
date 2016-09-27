@@ -136,7 +136,7 @@
         confirmStatus: {
           0: '未申请小丫鉴定',
           1: '小丫鉴定中',
-          2: '小丫觉得很赞',
+          2: '小丫觉得很好',
           3: '小丫觉得有效',
           4: '小丫不确定',
           5: '小丫部分不确定',
@@ -145,7 +145,7 @@
         voteValue: {
           1: '完全扯淡',
           2: '凑合',
-          3: '很赞',
+          3: '很好',
         },
         vote2Payback: {
           0: [30, 40, 50, 60, 70, 80],
@@ -245,7 +245,7 @@
             return arr.join('，');
           case 3:
             var arr = [];
-            arr.push('已评价很赞');
+            arr.push('已评价很好');
             arr.push('已支付全部给提供者');
             return arr.join('，');
         }
@@ -267,15 +267,15 @@
     <a href="question_pub.html" class="custom_pub_btn">我问现场</a>
     <a href="information_pub.html" class="custom_pub_btn">我写现场</a>
   </div>
-  <div class="share_wrap">
-    <div class="share_btn">
-      <p><img src="/img/share_icon.png"></p>
-      <p>分享到朋友圈</p>
-    </div>
-  </div>
+  <!--<div class="share_wrap">-->
+    <!--<div class="share_btn">-->
+      <!--<p><img src="/img/share_icon.png"></p>-->
+      <!--<p>分享到朋友圈</p>-->
+    <!--</div>-->
+  <!--</div>-->
   <div class="shishi_wrap">
     <p class="title">关于信息失实证明</p>
-    <p>超过100元打赏的现场信息，假如有容易判断的明确证据证明其内容严重失实，在付费后24小时内可以通过本平台公众号“丫丫传”将问题和回答失实信息上传，假如平台在当时鉴定能力下能较容易判断证明的准确性，将返还80%给付费者</p>
+    <p>超过100元DS的现场信息，假如有容易判断的明确证据证明其内容严重失实，在付费后24小时内可以通过本平台公众号“丫丫传”将问题和回答失实信息上传，假如平台在当时鉴定能力下能较容易判断证明的准确性，将返还80%给付费者</p>
   </div>
   <div class="copyright_wrap">
     <p>“丫丫传”全心为您服务</p>
@@ -289,8 +289,8 @@
     <p class="header">丫丫现场问问规则</p>
     <div class="chapter">
       <div class="detail">
-        <p>丫丫现场的问问是想了解某个现场信息的人打赏提问的现场问题，有人看到提问回答后，可以按打赏价格支付进行查看，支付之后可以根据情况进行不同程度的评价并产生相应的实时退款。另外平台会在信息提供者主动<span class="orange">申请小丫鉴定</span>的前提下对信息质量进行审核和判定，更大程度的保障信息的可信度。</p>
-        <p>丫丫现场是传递各种现场信息的微信应用平台，现场无处不在，天天都有精彩，分享你的现场，有人在需要它！</p>
+        <p>丫丫现场的问问是想了解某个现场信息的人DS提问的现场问题，有人看到提问回答后，可以按DS价格支付进行查看，支付之后可以根据情况进行不同程度的评价并产生相应的实时退款。另外平台会在信息提供者主动<span class="orange">申请小丫鉴定</span>的前提下对信息质量进行审核和判定，更大程度的保障信息的可信度。</p>
+        <p>丫丫现场是传递各种现场信息的微信应用平台，现场无处不在，天天都有精彩，FX你的现场，有人在需要它！</p>
         <p class="orange">目前系统对信息提供者只支持1元及以上的支付。</p>
         <p class="orange">如果您已经发布了信息，可以进入“丫丫传”公众号，查看自己已经编辑的信息。也可以点击页面右上角快捷收藏该页面，以方便以后查看和发送微信朋友圈。谢谢使用丫丫现场，遇有技术问题可通过公众号随时反馈，谢谢。</p>
       </div>
@@ -469,7 +469,7 @@
               <div class="payback-select-wrap hide-payback js-payback-select-wrap">
                 <span>评价</span>
                 <select class="js-vote-select">
-                  <option value="3">很赞</option>
+                  <option value="3">很好</option>
                   <option value="2">凑合</option>
                   <option value="1">扯淡</option>
                 </select>
@@ -494,7 +494,7 @@
                     <span class="ssz-auth-text">本条信息小丫鉴定中</span>
                   <?} else if(answer.confirm_status==2) {?>
                     <i class="authenticate_icon"></i>
-                    <span class="ssz-auth-text" style="color:#5cb85c;">本条信息小丫觉得很赞</span>
+                    <span class="ssz-auth-text" style="color:#5cb85c;">本条信息小丫觉得很好</span>
                   <?} else if(answer.confirm_status==3){?>
                     <i class="authenticate_icon auth_buqueding"></i>
                     <span class="ssz-auth-text" style="color:#5cb85c;">本条信息小丫觉得有效</span>
@@ -532,9 +532,9 @@
                       <option value="1">小丫鉴定中</option>
                     <? } ?>
                     <? if (answer.confirm_status == 2) { ?>
-                      <option value="2" selected="">小丫觉得很赞</option>
+                      <option value="2" selected="">小丫觉得很好</option>
                     <? } else { ?>
-                      <option value="2">小丫觉得很赞</option>
+                      <option value="2">小丫觉得很好</option>
                     <? } ?>
                     <? if (answer.confirm_status == 3) { ?>
                       <option value="3" selected="">小丫觉得有效</option>
@@ -583,7 +583,7 @@
             <a class="ssz-delete-btn border" onclick="userDelete(this)" data-id="<?=id?>" href="#">删除</a>
             <? } ?>
              <i class="icon_question"></i>
-        <div class="hongbao_wrap"><i class="icon_hongbao"></i> <span class="red_f"><?=price ?></span>元打赏 <input
+        <div class="hongbao_wrap"><i class="icon_hongbao"></i> <span class="red_f"><?=price ?></span>元DS <input
                 type="hidden" name="q_price" value="<?=price ?>"></div>
     </div>
 </script>

@@ -361,7 +361,7 @@
 		hidereplyUserLayer: function () {
 			$('#replyLayer').hide();
 		},
-		// 选择打赏金额
+		// 选择DS金额
 		selectDaShang: function () {
 			$(this).closest('.da-shang').find('div').removeClass('active');
 			$(this).addClass('active');
@@ -380,7 +380,7 @@
 			}
 			money = parseInt(money, 10);
 			if (isNaN(money) || money < 0) {
-				return alert('请填写正确的打赏金额');
+				return alert('请填写正确的DS金额');
 			}
 			var params = {
 				reply: reply,
