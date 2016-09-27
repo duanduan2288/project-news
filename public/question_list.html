@@ -35,46 +35,47 @@
   <script type="text/javascript">
   window.VARS = {};
   </script>
-  <link rel="stylesheet" type="text/css" href="./css/base.css"></link>
-  <link rel="stylesheet" type="text/css" href="./css/you_page_question_list.css"></link>
-  <link rel="stylesheet" type="text/css" href="./css/you_page_information_list.css"></link>
-  <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
-  <link href="./css/basscss-important.css" rel="stylesheet">
-  <link rel="stylesheet" href="./css/colors.min.css">
-  <link rel="stylesheet" href="./css/added.css">
-  <link rel="stylesheet" href="./css/custom.css">
+  <style>
+    body {
+      font-size: .32rem;
+    }
+    img {
+      max-width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" type="text/css" href="/css/base.css"></link>
+  <link rel="stylesheet" type="text/css" href="/css/you_page_question_list.css"></link>
+  <link rel="stylesheet" type="text/css" href="/css/you_page_information_list.css"></link>
+  <script type="text/javascript" src="/script/plug/zepto.min.js"></script>
+  <link href="/css/basscss-important.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/colors.min.css">
+  <link rel="stylesheet" href="/css/added.css">
+  <link rel="stylesheet" href="/css/custom.css?v=2016090601">
 </head>
 
 <body>
   <div class="main_container list">
-    <div class="top_wrap col-12 p0 m0">
-        <div class="clearfix site_tle m0 border-box px1 py1 col-12 bg-white">
-          <p class="left pr1 border-right m0">
-            <img src="./img/page_title1.png">
-          </p>
-          <p class="left pl1 m0" style="padding-top: .05rem;"><span>传递现场信息</span><br><span style="padding-top: 3px; display: inline-block;">给最需要的人</span></p>
-          <div class="menu_wrap right">
-            <div class="menu_btn"></div>
-            <div class="menu_list_wrap" style="display:none;">
-              <ul class="menu_list"></ul>
-            </div>
-          </div>
-        </div>
-      <div class="col-12 search_wrap">
-        <form class="px1 clearfix" onsubmit="return false" id="search_form">
-          <input type="text" class="col col-10 search_input my1 px1 border-box" name="key" placeholder="可能搜索到列表中未显示的内容" />
-          <input type="hidden" name="type" value="news">
-          <button class="col border-box px1 col-2 my1 bg-white" type="submit">搜索</button>
-        </form>
-      </div>
+    <div class="header_wrap">
+      <div class="menu_btn"></div>
+      <!-- <div class="nav"> -->
+        <!-- <a href="question_pub.html">我问现场</a> -->
+        <div class="information-mention"></div>
+      <!-- </div> -->
     </div>
-    <div class="tab_fixed">
-      <a href="information_list.html">现场</a>
-      <a href="question_list.html" class="active">问问</a>
+    <div class="wenwen-layer">
+        <a class="first-child" href="information_pub.html">发布现场</a>
+        <a href="question_pub.html">发布问问</a>
+        <div class="bottom-corner"></div>
     </div>
-    <div style="padding: .2rem .5rem;">
-      <a href="question_pub.html" class="custom_pub_btn">我问现场</a>
+    <div class="fixed-menu-wen">
+        <a href="information_list.html" class="menu active"><span class="space"></span class="space">现场</a>
+        <a class="show-wenwen-layer"><span class="send"></span></a>
+        <a href="question_list.html" class="menu"><span class="wenwen"></span>问问</a>
     </div>
+    <!-- <div class="tab_fixed">
+      <a href="information_list.html"><img src="./img/tab_ch_normal.png"> 现场</a>
+      <a href="question_list.html" class="active"><img src="./img/tab_ww_hover.png"> 问问</a>
+    </div> -->
     <!-- <div class="tab_wrap clearfix">
       <div class="tab_list">
         <div class="tab_item" link-type="inforList">现场</div>
@@ -84,7 +85,14 @@
     </div> -->
     <div class="con_wrap"> </div>
     <div class="loading_txt">读取数据中..</div>
-    <div class="no_more">显示近三天信息，搜索可查看更多以前的现场问问..</div>
+    <div class="no_more">
+      目前没有与您相关的内容了
+      <div class="copyright_wrap">
+        <p>“丫丫传”全心为您服务</p>
+        <p>2016&copy;yayachuan.com 京ICP备16013411</p>
+        <p>北京传传信息技术公司提供应用</p>
+      </div>
+    </div>
     <script type="text/html" id="con_item_tpl">
       <div class="con_item" data-id="<?=item.id ?>" id="item<?=item.id ?>">
         <div class="user_info">
@@ -92,13 +100,14 @@
           <div class="user_name">
             <?=item.nickname ?><i class="icon_question"></i></div>
             <div class="hongbao"> <i class="icon_hongbao"></i> <span class="red_f"><?=item.price ?></span>元打赏 </div>
-            <div style="font-size: .27rem;font-weight: bold;" class="right pr1"><?=item.event_type?></div>
+            <span class="label label-recommend" style="margin-right: .3rem;<? if (item.is_recommand != 1) { ?>display: none;<? } ?>" >推荐</span>
             <div class="clear_f"></div>
           </div>
           <div class="con">
             <?=item.content ?>
           </div>
           <div class="con_footer">
+            <span style="margin-right:.2rem;"><?=item.event_type ?></span>
             <span><?=item.created_at.substr(0, 16) ?></span>
             <!-- <span class="mr20">				<span class="num"><?=item.answer_count ?></span>人回答 </span> <span>				<i class="icon_good"></i><span class="num"><?=item.effect_count ?></span>人觉得有效 </span> -->
           </div>
@@ -106,6 +115,9 @@
         </div>
         <? if (item.is_admin) { ?>
           <div class="col-12 bg-red mb1 p1 border">
+            <a href="#" class="inline-block js-recommend" data-id="<?=item.id?>" data-recommend="<?=item.is_recommand ?>" onclick="recommend(this)">
+              <?=(item.is_recommand == 1 ? '取消推荐' : '推荐信息') ?>
+            </a>
             <a class="inline-block" onclick="userDelete(this)" data-id="<?=item.id?>" href="#"><? if (item.deleted_at) {?>恢复信息<?}else {?>删除信息<?}?></a>
             <a class="inline-block" onclick="fakeDelete(this)" data-id="<?=item.id?>" href="#"><? if (item.is_display) {?>隐藏信息<?}else {?>不再隐藏<?}?></a>
           </div>
@@ -113,32 +125,31 @@
       </script>
     </div>
     <div class="share_modal page" id="intro_page">
-      <div class="close">
-        &times;
-      </div>
+      <div class="close">&times;</div>
       <div class="content">
         <p class="header">丫丫现场</p>
         <div class="chapter">
           <p class="title">1、关于丫丫现场</p>
           <div class="detail">
-            <p>丫丫现场是传递各种现场信息的微信应用平台，现场无处不在，天天都有精彩，如果你在某个现场或经历过该现场，那可以分享你的现场信息，如果你想知道某个现场，也可以提问该现场信息。有钱能使人推磨，打赏些银子，会有人帮到你。</p>
+            <p>丫丫现场是为个人打造的一款用来获取和传递各种生活信息的微信应用平台。如果你正在某个现场或经历过某个现场，可以分享你的现场信息，如果你想知道某个现场，也可以提问该现场信息。现场无处不在，天天都有发生，办公室、小区、街道、会议室、课堂、校园…所有地点的所有事，皆是现场。
+            </p>
           </div>
         </div>
         <div class="chapter">
           <p class="title">2、适用场景</p>
           <div class="detail">
-            <p>丫丫现场分为四类，活动，景色，事件，课堂</p>
-            <p>活动：各种社会团体娱乐、赛事、会议、聚会等社会活动</p>
-            <p>景色：各种美景，奇景，罕见自然景色、人文景观</p>
-            <p>事件：各种突发事件，生活琐事等</p>
-            <p>课堂：各种课堂，讲堂，分享会，培训会的内容分享、讲稿、课堂笔记等</p>
+            <p>丫丫现场分为四类，活动，休闲，事件，会议</p>
+            <p>活动：各种社会团体娱乐活动、赛事、聚会、展览、集体游玩等集体类活动</p>
+            <p>休闲：包括个人自发的游玩，逛街，独处，旅游等个人性质的休闲行为一类</p>
+            <p>事件：各种遇到的突发事件，生活琐事等</p>
+            <p>会议：各种行业会议，讲座，分享会，课堂等有一定信息价值的单双向交流会，属于活动的一种。</p>
           </div>
         </div>
         <div class="chapter">
           <p class="title">3、编辑内容</p>
           <div class="detail">
-            <p>如果文字较多，为防页面系统原因退出，尽量将文字在其它位置编辑好，粘贴到编辑框。</p>
-            <p>内容不涉及非法，隐私等，如有发现将予以删除。</p>
+            <p class="orange">如果文字较多，为防页面系统原因退出，尽量将文字在其它位置编辑好，粘贴到编辑框。</p>
+            <p class="orange">内容不涉及非法，隐私等，如有发现将予以删除。如果用户有将信息或问题推荐给更多人看的需求或者经平台审核有需要或必要的信息或问题，平台将推荐给每个用户可见，如果您不需要推荐可以通过公众号提前说明或要求撤回。</p>
           </div>
         </div>
         <div class="chapter">
@@ -154,24 +165,25 @@
         <div class="chapter">
           <p class="title">5、小丫鉴定</p>
           <div class="detail">
-            <p>小丫鉴定是指平台为保障用户的信息有效性对信息进行的预先审核把关，审核结果主要有4种，很赞，有效，不确定，无效，审核结果只在员工小丫的有限认知范围内进行，不保证无结果偏差，不为结果负经济和法律责任。</p>
-            <p>很赞：信息被认为很充实，很精彩，很准确，很有用</p>
-            <p>有效：信息被认为总体来看比较有用，是信息公开部分描述所要讲述的内容范围，有一定参考价值</p>
-            <p>不确定：信息内容较为专业、特殊或难以验证，超出小丫认知范围，不确定是否有效或可用</p>
-            <p>无效：小丫认为信息过于干瘪，主题严重不搭等，具有较少的参考价值</p>
+            <p><span class="orange">小丫鉴定是指平台在信息发布用户申请鉴定的情况下，为保障用户的信息有效性对信息进行的预先审核评判，以提高信息需求用户对信息的可信度。</span>审核结果主要有4种，很赞，有效，不确定，无效，审核结果只在员工小丫的有限认知范围内进行，不保证无结果偏差，不为结果负经济和法律责任。超过100元的信息支付，平台从提供者中收取5%的人工费用。</p>
+            <p>很赞：信息被认为很充实，很精彩，很准确，很有用；</p>
+            <p>有效：信息被认为总体来看比较有用，是信息公开部分描述所要讲述的内容范围，有一定参考价值；</p>
+            <p>不确定：信息内容较为专业、特殊或难以验证，超出小丫认知范围，不确定是否有效或可用；</p>
+            <p>无效：小丫认为信息过于干瘪，主题严重不搭等，具有较少的参考价值；</p>
+            <p>在没有申请鉴定的情况下，用户也可以自由观看信息，但信息的内容没有基本保障。</p>
           </div>
         </div>
         <div class="chapter">
           <p class="title">6、查看文件</p>
           <div class="detail">
-            <p>点击文件对自动调用浏览器接口，可以选择保存在本地，也可以直接打开，一般需要安装qq或uc等浏览器，部分安卓手机有兼容问题，为保证查看质量及信息可能会删除，尽量保存到本地。</p>
+            <p>点击文件对自动调用浏览器接口，可以选择保存在本地，也可以直接打开，一般需要安装qq或uc等浏览器，部分安卓手机有兼容问题。</p> 
           </div>
         </div>
         <div class="chapter">
           <p class="title">7、支付</p>
           <div class="detail">
             <p>支付内容后，费用不会立即转给信主，评价后根据评价和小丫鉴定情况进行转出，具体方式评价时的评价区域下方会有提示。</p>
-            <p>24小时不做评价，默认为评价很赞</p>
+            <p>支付后需要评价，对方才会收到你的奖励。</p>
             <p class="orange">目前系统对信息提供者只支持1元以上的支付 。</p>
           </div>
         </div>
@@ -188,21 +200,52 @@
           </div>
         </div>
         <div class="chapter">
-          <p class="title">10、保留时间</p>
+          <p class="title">10、保存及查看方式</p>
           <div class="detail">
-            <p>现场信息实时更新，超过三天的信息可能将被隐藏，通过搜索可见，部分信息将更长时间保留显示。</p>
+            <p class="orange">如果信息暂时不转发朋友圈，可以暂时点击右上角用微信收藏，需要时到收藏中查看使用；</p>
+            <p class="orange">也可以关注“丫丫传”公众号，会看到自己发布的信息和问题。</p>
           </div>
         </div>
-        <p class="orange footer">分享你的现场，有人需要它！</p>
+        <div class="footer">
+          <p class="orange">分享你的现场，有人需要它！</p>
+          <p class="orange">打赏你的需求，有人会帮你！</p>
+        </div>
+        <div class="hide-info"><span class="icon"></span></div>
       </div>
+
     </div>
     <script type="text/html" id="top_back_tpl">
       <div class="back_wrap">
         <a class="icon_back" href="<?=link ?>"></a> <img src="<?=avatar ?>" class="head_img"> <span class="tle"><?=name ?></span> </div>
       </script>
       <div id="PAY_loading_wrap" style="display:none;">支付信息读取中..</div>
-      <script type="text/javascript" src="./script/you_page_question_list.js"></script>
+      <script type="text/javascript" src="/script/you_page_question_list.js?v=2016090601"></script>
       <script type="text/javascript">
+      function init() {
+        $('a').each(function(){
+          var href = $(this).attr('href');
+          if (href && /.html$/.test(href)) {
+            $(this).attr('href', href + '?_=' + new Date().getTime());
+          }
+        });
+      }
+      init();
+      function recommend(el) {
+        var $el = $(el);
+        var id = $el.data('id');
+        var hasRecommend = $el.data('recommend') == 1;
+        var url = hasRecommend ? '/news/cancelrecommand' : '/news/recommand';
+        $.post(url, {id: id, type: 'question'}, function(data){
+          if (data.code == 200) {
+            hasRecommend = !hasRecommend;
+            $el.data('recommend', hasRecommend ? 1: 0);
+            $el.text(hasRecommend ? '取消推荐' : '推荐信息');
+            $('#item' + id).find('.label-recommend').toggle();
+          } else {
+            alert(data.msg);
+          }
+        });
+      }
       function userDelete(ele) {
         var id = $(ele).attr('data-id');
         var value = $(ele).html().indexOf('删除') > -1 ? 0 : 1;

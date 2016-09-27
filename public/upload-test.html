@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,  initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+	<title>上传测试</title>
+	<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+</head>
+<body>
+	<input type="file" id="file">
+	<p id="hint"></p>
+	<script>
+        var $hint = $('#hint');
+        var $file = $('#file');
+		$('#file').on('change', function(){
+			var file = this.files[0];
+    		if (!file) return;
+    		
+    		var form = new FormData();
+    		form.append('file', file);
+    		$.ajax({
+    		      url: '/news/upload'
+    		      , type: 'POST'
+    		      , data: form
+    		      , processData: false
+    		      , contentType: false
+    		      , dataType: 'json'
+    		      , beforeSend: function () {
+    		        $hint.text('上传中...');
+                    $file.prop('disabled', true);
+    		      }
+    		      , success: function (res) {
+    		      	if (res.code == 200) { 
+    		      		alert('上传成功!');
+    		      	} else {
+    		      		alert('上传失败!');
+    		      		alert(res);
+    		      	}
+    		      }
+    		      , error: function(xhr, status, error) {
+    		      	alert('上传error');
+    		      	alert(status);
+    		      	alert(error);
+    		      }
+    		      , complete: function() {
+    		      	$hint.text('');
+                    $file.prop('disabled', false);
+    		      }
+    		});
+		})
+	</script>
+</body>
+</html>

@@ -36,10 +36,18 @@
   <script type="text/javascript">
   window.VARS = {};
   </script>
-  <link rel="stylesheet" type="text/css" href="./css/base.css"></link>
-  <link href="./css/basscss.min.css" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="./css/you_page_information_detail.css"></link>
-  <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
+  <style>
+    body {
+      font-size: .32rem;
+    }
+    img {
+      max-width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" type="text/css" href="/css/base.css"></link>
+  <link href="/css/basscss.min.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/css/you_page_information_detail.css"></link>
+  <script type="text/javascript" src="/script/plug/zepto.min.js"></script>
   <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
   <style media="screen">
   #ssz-title {
@@ -62,15 +70,16 @@
     margin-top: 20px !important;
   }
   </style>
-  <link href="./css/basscss-important.css" rel="stylesheet">
-  <link rel="stylesheet" href="./css/colors.min.css">
-  <link rel="stylesheet" href="./css/added.css">
-  <link rel="stylesheet" href="./css/custom.css">
+  <link href="/css/basscss-important.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/colors.min.css">
+  <link rel="stylesheet" href="/css/added.css">
+  <link rel="stylesheet" href="/css/custom.css?v=2016090601">
   <script>
     function getFilesDisplayText(obj) {
       var arr = [];
       var fields = [
-        {key: 'qr_length', name: '文字'},
+        {key: 'qr_length', name: '字'},
+        {key: 'audio_file_count', name: '语音', unit: '段'},
         {key: 'image_count', name: '图片', unit: '张'},
         {key: 'vedio_count', name: '视频'},
         {key: 'voice_count', name: '音频'},
@@ -82,7 +91,7 @@
           arr.push(fields[i].name + obj[fields[i].key] + (fields[i].unit || '个'));
         }
       }
-      return arr.length > 0 ?  '下面有' + arr.join('，') + '。' : '';
+      return arr.length > 0 ?  '下面还有' + arr.join('，')  : '';
     }
     function showSum(obj) {
       var fields = ['image_count', 'vedio_count', 'voice_count', 'txt_count', 'other_count'];
@@ -102,6 +111,94 @@
       if (new Date().getTime() - new Date(obj.pay_date).getTime() >= period) return true;
       return false;
     }
+    function getVoiceImageLink(audio) {
+      var baseUrl = 'img/audio/';
+      var duration = audio.media_duration;
+      if (duration <= 20) {
+        return baseUrl + 'audio2_1-20.jpg';
+      }
+      if (duration <= 30) {
+        return baseUrl + 'audio2_21-30.jpg';
+      }
+      if (duration <= 40) {
+        return baseUrl + 'audio2_31-40.jpg';
+      }
+      if (duration <= 50) {
+        return baseUrl + 'audio2_41-50.jpg';
+      }
+      return baseUrl + 'audio2_51-60.jpg';
+    }
+    var constants = {
+      confirmStatus: {
+        0: '未申请小丫鉴定',
+        1: '小丫鉴定中',
+        2: '小丫觉得很赞',
+        3: '小丫觉得有效',
+        4: '小丫不确定',
+        5: '小丫部分不确定',
+        6: '小丫觉得无效',
+      },
+      voteValue: {
+        1: '完全扯淡',
+        2: '凑合',
+        3: '很赞',
+      },
+      vote2Payback: {
+        0: [30, 40, 50, 60, 70, 80],
+        1: [30, 40, 50, 60, 70],
+        2: [30, 40, 50],
+        3: [30, 40, 50, 60],
+        4: [30, 40, 50, 60, 70],
+        5: [30, 40, 50, 60, 70],
+        6: [30, 40, 50, 60, 70, 80],
+      },
+      vote1Text: {
+        0: '100%退回',
+        1: '70%退回，5%给提供者，剩余给丫丫公益',
+        2: '不能进行此种评价',
+        3: '60%退回，15%给提供者，剩余给丫丫公益',
+        4: '70%退回，5%给提供者，剩余给丫丫公益',
+        5: '70%退回，5%给提供者，剩余给丫丫公益',
+        6: '80%退回，剩余给丫丫公益',
+      },
+    };
+    function renderVote2PaybackOptions(item) {
+      var confirmStatus = item.confirm_status;
+      var values = constants.vote2Payback[confirmStatus];
+      var arr = $.map(values, function(v){
+        return '<option value="'+v+'">'+v+'%</option>';
+      });
+      return arr.join('');
+    }
+    function getPaybackText(item, voteValue, paybackCount) {
+      var price = item.price;
+      var confirmStatus = item.confirm_status;
+      switch(voteValue) {
+        case 1:
+          return constants.vote1Text[confirmStatus];
+        case 2:
+          if (!paybackCount) return '部分退回';
+          var total = 100;
+          var pingtaiCount = price < 100 ? 0 : 5;
+          var providerCount = total - pingtaiCount - paybackCount;
+          var arr = [];
+          if (pingtaiCount > 0) {
+            arr.push(paybackCount + '%退回');
+            arr.push(providerCount + '%支付给提供者');
+            arr.push(pingtaiCount + '%给平台');
+          } else {
+            arr.push(providerCount + '%支付给提供者');
+            arr.push(paybackCount + '%退回');
+          }
+          return arr.join('，');
+        case 3:
+          if (confirmStatus == 0 || price < 100) {
+            return '100%支付给提供者';
+          }
+          return '95%支付给提供者，5%支付给平台';
+      }
+      return '';
+    }
   </script>
 </head>
 
@@ -112,34 +209,45 @@
   <div class="footer_wrap show_after_loaded" style="padding-bottom:2rem;">
     <div style="margin-top: 1rem;">
       <a href="information_pub.html" class="custom_pub_btn">我写现场</a>
+      <a href="question_pub.html" class="custom_pub_btn">我问现场</a>
     </div>
     <div class="share_wrap" style="margin-top:1.2rem;">
       <div class="share_btn">
-        <p><img src="./img/share_icon.png"></p>
+        <p><img src="/img/share_icon.png"></p>
         <p>分享到朋友圈</p>
       </div>
     </div>
-  </div>
-  <div class="tab_fixed show_after_loaded">
-    <a href="javascript:void(0);" class="active">现场</a>
-    <a href="question_pub.html">问问</a>
-  </div>
-  <div class="share_modal page" id="intro_page">
-    <div class="close">
-      &times;
+    <div class="copyright_wrap">
+      <p>“丫丫传”全心为您服务</p>
+      <p>2016&copy;yayachuan.com 京ICP备16013411</p>
+      <p>遇到问题可通过公众号反馈客服</p>
+      <p>北京传传信息技术公司提供应用</p>
     </div>
+  </div>
+  <!-- <div class="tab_fixed show_after_loaded">
+    <a href="information_list.html" class="active">
+      <img src="./img/tab_ch_hover.png"> 现场
+    </a>
+    <a href="question_list.html">
+      <img src="./img/tab_ww_normal.png"> 问问
+    </a>
+  </div> -->
+  <div class="share_modal page detail_page" id="intro_page">
     <div class="content">
+      <p class="header">丫丫现场信息规则</p>
       <div class="chapter">
         <div class="detail">
-          <p style="margin-bottom: .3rem;">丫丫现场的信息是经历某个现场的人发布的精彩现场信息，平台会在信主<span class="orange">申请小丫鉴定</span>的前提下对信息质量进行审核，审核结果对外公示，支付者支付之后可以根据情况进行不同程度的评价产生相应的实时退款。</p>
-          <p style="margin-bottom: .3rem;">丫丫现场是传递各种现场信息的微信应用平台，现场无处不在，天天都有精彩，分享你的现场，有人在需要它！</p>
-          <p class="orange">（目前系统对信息提供者只支持1元及以上的支付）</p>
+          <p>丫丫现场信息是经历某个现场的人发布的现场信息，信息需求者可以支付进行查看，支付之后可以根据情况进行不同程度的评价并产生相应的实时退款。另外平台会在信主<span class="orange">申请小丫鉴定</span>的前提下对信息内容进行审核和判定，更大程度的保障信息的可信度。</p>
+          <p>丫丫现场是传递各种现场信息的微信应用平台，现场无处不在，天天都有精彩，分享你的现场，有人在需要它！</p>
+          <p class="orange">目前系统对信息提供者只支持1元及以上的支付。</p>
+          <p class="orange">如果您已经发布了信息，可以进入“丫丫传”公众号，查看自己已经编辑的信息。也可以点击页面右上角快捷收藏该页面，以方便以后查看和发送微信朋友圈。谢谢使用丫丫现场，遇有技术问题可通过公众号随时反馈，谢谢。</p>
         </div>
       </div>
+      <div class="hide-info"><span class="icon"></span></div>
     </div>
   </div>
   <div class="share_modal" id="share_page">
-    <img src="./img/share.png">
+    <img src="/img/share_xianchang.png">
   </div>
   <!-- <div class="share_btn"></div> -->
   <script type="text/html" id="detail_tpl">
@@ -170,15 +278,27 @@
           <?=getFilesDisplayText(item) ?>
         </div>
         <div class="open_btn">
-          <img src="./img/pocket.png">
+          <img src="/img/pocket.png">
           支付<?=item.price ?>元打开
         </div>
         <input type="hidden" name="q_price" value="<?=item.price ?>">
         <? } else { ?>
           <div class="hide_info">
+            <? if (item.voice_data && item.voice_data.length > 0) { ?>
+              <? item.voice_data.forEach(function(voice){ ?>
+                  <div class="audio_cell">
+                    <img src="<?=getVoiceImageLink(voice) ?>" alt="">
+                    <span class="duration"><?= voice.media_duration ?>"</span>
+                    <span class="symbol"> >>> </span>
+                    <audio src="<?= voice.media_url ?>"></audio>
+                  </div>
+              <? });?>
+            <? } ?>
+            <? if (item.qrcode_content) { ?>
             <p class="mt20 ssz-p-1">
               <?=item.qrcode_content ?>
             </p>
+            <? } ?>
             <? if (item.thumb && item.thumb.length) { ?>
             <p class="ssz-p-2 clearfix table">
               <? item.thumb.forEach(function(img){ ?>
@@ -218,87 +338,77 @@
           <? } ?>
             <? if (item.is_me || item.is_admin) { ?>
               <div class="opt_wrap clearfix" data-me="<?=item.is_me ?>" data-vote-value="<?=item.vote_data_value?>">
-                <div class="s1" data-value="3"><img src="./img/01.png" alt="" /><br><span class="desc"><span id="ssz-data-3"><?=item.useful_count ?></span>人认为要的就是它</span></div>
-                <div class="s2" data-value="2"><img src="./img/02.png" alt="" /><br><span class="desc"><span id="ssz-data-2"><?=item.good_count ?></span>人认为凑合</span></div>
-                <div class="s3" data-value="1"><img src="./img/03.png" alt="" /><br><span class="desc"><span id="ssz-data-1"><?=item.useless_count ?></span>人认为完全扯淡</span></div>
+                <div class="s1" data-value="3"><img src="/img/01.png" alt="" /><br><span class="desc"><span id="ssz-data-3"><?=item.useful_count ?></span>人认为要的就是它</span></div>
+                <div class="s2" data-value="2"><img src="/img/02.png" alt="" /><br><span class="desc"><span id="ssz-data-2"><?=item.good_count ?></span>人认为凑合</span></div>
+                <div class="s3" data-value="1"><img src="/img/03.png" alt="" /><br><span class="desc"><span id="ssz-data-1"><?=item.useless_count ?></span>人认为完全扯淡</span></div>
               </div>
             <? } else if (item.is_open && item.price == 0) { ?> 
               <div class="opt_wrap clearfix" data-me="<?=item.is_me ?>" data-vote-value="<?=item.vote_data_value?>">
                 <? if (item.vote_data_value == 0) { ?>
-                  <div class="s1" data-value="3"><img src="./img/1.png" alt="" /><br><span class="desc">要的就是它</span></div>
-                  <div class="s2" data-value="2"><img src="./img/2.png" alt="" /><br><span class="desc">凑合</span></div>
-                  <div class="s3" data-value="1"><img src="./img/3.png" alt="" /><br><span class="desc">完全扯淡</span></div>
+                  <div class="s1" data-value="3"><img src="/img/1.png" alt="" /><br><span class="desc">要的就是它</span></div>
+                  <div class="s2" data-value="2"><img src="/img/2.png" alt="" /><br><span class="desc">凑合</span></div>
+                  <div class="s3" data-value="1"><img src="/img/3.png" alt="" /><br><span class="desc">完全扯淡</span></div>
                 <? } ?>
                 <? if (item.vote_data_value == 3) { ?>
-                  <div class="s1" data-value="3"><img src="./img/01.png" alt="" /><br><span class="desc">要的就是它</span></div>
-                  <div class="s2" data-value="2"><img src="./img/2.png" alt="" /><br><span class="desc">凑合</span></div>
-                  <div class="s3" data-value="1"><img src="./img/3.png" alt="" /><br><span class="desc">完全扯淡</span></div>
+                  <div class="s1" data-value="3"><img src="/img/01.png" alt="" /><br><span class="desc">要的就是它</span></div>
+                  <div class="s2" data-value="2"><img src="/img/2.png" alt="" /><br><span class="desc">凑合</span></div>
+                  <div class="s3" data-value="1"><img src="/img/3.png" alt="" /><br><span class="desc">完全扯淡</span></div>
                 <? } ?>
                 <? if (item.vote_data_value == 2) { ?>
-                  <div class="s1" data-value="3"><img src="./img/1.png" alt="" /><br><span class="desc">要的就是它</span></div>
-                  <div class="s2" data-value="2"><img src="./img/02.png" alt="" /><br><span class="desc">凑合</span></div>
-                  <div class="s3" data-value="1"><img src="./img/3.png" alt="" /><br><span class="desc">完全扯淡</span></div>
+                  <div class="s1" data-value="3"><img src="/img/1.png" alt="" /><br><span class="desc">要的就是它</span></div>
+                  <div class="s2" data-value="2"><img src="/img/02.png" alt="" /><br><span class="desc">凑合</span></div>
+                  <div class="s3" data-value="1"><img src="/img/3.png" alt="" /><br><span class="desc">完全扯淡</span></div>
                 <? } ?>
                 <? if (item.vote_data_value == 1) { ?>
-                  <div class="s1" data-value="3"><img src="./img/1.png" alt="" /><br><span class="desc">要的就是它</span></div>
-                  <div class="s2" data-value="2"><img src="./img/2.png" alt="" /><br><span class="desc">凑合</span></div>
-                  <div class="s3" data-value="1"><img src="./img/03.png" alt="" /><br><span class="desc">完全扯淡</span></div>
+                  <div class="s1" data-value="3"><img src="/img/1.png" alt="" /><br><span class="desc">要的就是它</span></div>
+                  <div class="s2" data-value="2"><img src="/img/2.png" alt="" /><br><span class="desc">凑合</span></div>
+                  <div class="s3" data-value="1"><img src="/img/03.png" alt="" /><br><span class="desc">完全扯淡</span></div>
                 <? } ?>
               </div>
             <? } ?>
               <? if (!item.is_me && !item.is_admin && item.is_open && item.price > 0) { ?>
-                <div class="ssz-container table col-12 pt1" style="font-size: .2rem;" data-me="<?= item.is_me ?>" data-vote-value="<?=item.vote_data_value?>" data-price="<?=item.price?>">
-                  <div class="table-cell col-4" data-value="3" style="padding: 0 .1rem;">
-                    <? if (item.vote_data_value == 3) { ?>
-                    <img class="block mx-auto" style="margin-bottom: .2rem;" src="./img/01.png" alt="" />
-                    <? } else {?>
-                    <img class="block mx-auto" style="margin-bottom: .2rem;" src="./img/1.png" alt="" />
-                    <? } ?>
-                    <div class="block mx-auto">
-                      <p class="center">要的就是它</p>
-                      <? if (item.confirm_status == 0) { ?>
-                      <p class="center">100%支付给提供者</p>
-                      <? } else { ?>
-                      <p class="center">95%支付给提供者，5%支付给平台</p>
+                <div class="ssz-container pt1 js-vote-container" style="font-size: .2rem;" data-me="<?= item.is_me ?>" data-vote-value="<?=item.vote_data_value?>" data-price="<?=item.price?>" data-confirm-status="<?=item.confirm_status ?>">
+                  <div class="table col-12">
+                    <div class="table-cell col-4" data-value="3" style="padding: 0 .1rem;">
+                      <? if (item.vote_data_value == 3) { ?>
+                      <img class="block mx-auto" style="margin-bottom: .2rem;" src="/img/01.png" alt="" />
+                      <? } else {?>
+                      <img class="block mx-auto" style="margin-bottom: .2rem;" src="/img/1.png" alt="" />
                       <? } ?>
+                      <div class="block mx-auto">
+                        <p class="center">很赞</p>
+                        <p class="center js-vote-text"><?=getPaybackText(item, 3) ?></p>
+                      </div>
+                    </div>
+                    <div class="table-cell col-4" data-value="2"  style="padding: 0 .1rem;">
+                      <? if (item.vote_data_value == 2) { ?>
+                      <img class="block mx-auto" style="margin-bottom: .2rem;" src="/img/02.png" alt="" />
+                      <? } else {?>
+                      <img class="block mx-auto" style="margin-bottom: .2rem;" src="/img/2.png" alt="" />
+                      <? } ?>
+                      <div class="block mx-auto">
+                        <p class="center">凑合</p>
+                        <p class="center js-vote-text"><?=getPaybackText(item, 2) ?></p>
+                      </div>
+                    </div>
+                    <div class="table-cell col-4" data-value="1" style="padding: 0 .1rem;">
+                      <? if (item.vote_data_value == 1) { ?>
+                      <img class="block mx-auto" style="margin-bottom: .2rem;" src="/img/03.png" alt="" />
+                      <? } else { ?>
+                      <img class="block mx-auto" style="margin-bottom: .2rem;" src="/img/3.png" alt="" />
+                      <? } ?>
+                      <div class="block mx-auto">
+                        <p class="center">完全扯淡</p>
+                        <p class="center js-vote-text"><?=getPaybackText(item, 1) ?></p>
+                      </div>
                     </div>
                   </div>
-                  <div class="table-cell col-4" data-value="2"  style="padding: 0 .1rem;">
-                    <? if (item.vote_data_value == 2) { ?>
-                    <img class="block mx-auto" style="margin-bottom: .2rem;" src="./img/02.png" alt="" />
-                    <? } else {?>
-                    <img class="block mx-auto" style="margin-bottom: .2rem;" src="./img/2.png" alt="" />
-                    <? } ?>
-                    <div class="block mx-auto">
-                      <p class="center">凑合</p>
-                      <? if (item.confirm_status == 0) { ?>
-                      <p class="center">50%支付给提供者，50%退回</p>
-                      <? } else { ?>
-                      <p class="center">45%退回，50%支付给提供者，5%给平台</p>
-                      <? } ?>
-                    </div>
-                  </div>
-                  <div class="table-cell col-4" data-value="1" style="padding: 0 .1rem;">
-                    <? if (item.vote_data_value == 1) { ?>
-                    <img class="block mx-auto" style="margin-bottom: .2rem;" src="./img/03.png" alt="" />
-                    <? } else { ?>
-                    <img class="block mx-auto" style="margin-bottom: .2rem;" src="./img/3.png" alt="" />
-                    <? } ?>
-                    <div class="block mx-auto">
-                      <p class="center">完全扯淡</p>
-                      <? if (item.confirm_status == 0) { ?>
-                      <p class="center">100%退回</p>
-                      <!--<p class="center">70%退回，剩余给丫丫公益</p>-->
-                      <? } else if (item.confirm_status == 2){ ?>
-                      <p id="cannot-click" class="center">此为很赞信息，不能进行此种评价!</p>
-                      <? } else if (item.confirm_status == 3){ ?>
-                      <p class="center">50%退回，15%给提供者，剩余给丫丫公益</p>
-                      <? } else if (item.confirm_status == 1 || item.confirm_status == 4 || item.confirm_status == 5){ ?>
-                      <p class="center">50%退回，5%给提供者，剩余给丫丫公益</p>
-                      <? } else if (item.confirm_status == 6){ ?>
-                      <p class="center">50%退回，剩余给丫丫公益</p>
-                      <? } ?>
-                    </div>
+                  <div class="payback-select-wrap js-payback-select-wrap" style="display: none;">
+                    <span>退</span>
+                    <select class="js-payback-select">
+                      <?=renderVote2PaybackOptions(item) ?>
+                    </select>
+                    <button data-value="2" data-submit="1">提交</button>
                   </div>
                 </div>
                 <? if (item.price >= 1 && item.vote_data_value == 1) { ?>
@@ -333,13 +443,13 @@
                     <? } ?>
                   <? } else if (!isPaybackOverdue(item)) { ?>
                     <div id="shishi-auth" style="display: none;">
-                      <div class="col-12 border-box">
+                      <div class="col-12 border-box" >
                         <p id="ssz-title">信息失实证明</p>
                         <textarea class="col-12" style="height: 1.5rem;font-size: .3rem;" id="ssz-description" placeholder="超过100元的价值信息，假如有容易判断的明确证据证明内容严重失实，在付费后24小时内可以上传给平台，平台将返还80%给付费者"></textarea>
                         <div class="input_hint">500</div>
                         <p id="ssz-limit-1" class="require_flag" style="margin-top: 4px;"></p>
                         <div class="other_upload_wrap">
-                          <div class="upload_btn">+ <input uploadNum="0" data-max-file="3" type="file" id="other_file_input" name="file"></div>
+                          <div class="upload_btn"><input uploadNum="0" data-max-file="3" type="file" id="other_file_input" name="file"></div>
                         </div>
                       </div>
                       <div id="ssz-submit" class="custom_pub_btn my1">提交信息失实证明</div>
@@ -424,10 +534,21 @@
       <img src="<?=avatar ?>" class="head_img"> <span
       class="tle"><?=name ?></span>
       <span class="time"><?=time.substr(0, 16) ?></span>
-      <a href="#" class="ssz-delete">删除</a>
+      <a href="#" class="ssz-delete" style="height: 24px;line-height:24px;border: 1px solid #444;padding: 2px 3px;">删除</a>
     </div>
   </script>
   <div id="PAY_loading_wrap" style="display:none;">支付信息读取中..</div>
-  <script type="text/javascript" src="./script/you_page_information_detail.js"></script>
+  <script type="text/javascript" src="/script/you_page_information_detail.js?v=2016090601"></script>
+  <script>
+    function init() {
+      $('a').each(function(){
+        var href = $(this).attr('href');
+        if (href && /.html$/.test(href)) {
+          $(this).attr('href', href + '?_=' + new Date().getTime());
+        }
+      });
+    }
+    init();
+  </script>
 </body>
 </html>

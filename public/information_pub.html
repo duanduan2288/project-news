@@ -36,10 +36,19 @@
     <script type="text/javascript">
         window.VARS = {};
     </script>
-    <link rel="stylesheet" type="text/css" href="./css/base.css" />
-    <link rel="stylesheet" type="text/css" href="./css/you_page_information_pub.css" />
-    <script type="text/javascript" src="./script/plug/zepto.min.js"></script>
-    <link rel="stylesheet" href="./css/custom.css">
+    <style>
+        body {
+          font-size: .32rem;
+        }
+        img {
+          max-width: 100%;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="/css/base.css" />
+    <link rel="stylesheet" type="text/css" href="/css/you_page_information_pub.css" />
+    <script type="text/javascript" src="/script/plug/jquery.min.js"></script>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <link rel="stylesheet" href="/css/custom.css?v=2016090601">
 </head>
 
 <body style="padding-bottom:0;">
@@ -50,12 +59,16 @@
             <textarea id="content" name="content" placeholder="此部分内容对外显示，您可以大致写下您要发布的现场内容，引起大家的注意"></textarea>
             <p class="input_hint">300</p>
         </div>
-        <div class="form-group textarea">
-            <h2>现场信息支付部分<span class="require_flag">*</span></h2>
+        <div class="form-group textarea p-t-sm">
+            <h2>现场信息支付部分<span class="require_flag">*</span><img src="/img/audio/audio_icon2.png" alt="" id="audioAddButton"></h2>
+            <div class="audio_add_wrap" id="audioAddWrap">
+                <p></p>
+            </div>
+            <div class="audio_list_wrap" id="audioListWrap"></div>
             <textarea id="qrcode_content" name="qrcode_content" placeholder="此部分内容对外隐藏，需支付才能显示，您需要给力填写，才能得到读者的好评"></textarea>
             <p class="input_hint">2000</p>
         </div>
-        <div class="form-group">
+        <div class="form-group p-t-sm">
             <h2>
                 上传图片/视频/文件
                 <small>（可预览前</small>
@@ -76,19 +89,19 @@
             <h2>任选一个内容相近的标签</h2>
             <div class="event_type_wrap" style="margin: 5px 0">
               <div class="price_item" data-value="活动">活动</div>
-              <div class="price_item" data-value="景色">景色</div>
+              <div class="price_item" data-value="休闲">休闲</div>
               <div class="price_item" data-value="事件">事件</div>
-              <div class="price_item" data-value="课堂">课堂</div>
+              <div class="price_item" data-value="会议">会议</div>
             </div>
         </div>
         <div class="form-group">
             <h2>定价<small>（至少2元）</small></h2>
             <div class="price_wrap">
-                <div class="price_item" data-value="5">5元</div>
+                <div class="price_item act" data-value="5">5元</div>
                 <div class="price_item" data-value="10">10元</div>
                 <div class="price_item" data-value="100">100元</div>
                 <input type="number" max="1000" min="0.01" class="price_custom" placeholder="自定义">
-                <div class="mt2 price_item act" data-value="0">公开</div>
+                <div class="mt2 price_item" data-value="0">公开</div>
             </div>
         </div>
         <div class="form-group evaluate" style="display: none;">
@@ -102,7 +115,31 @@
     </script>
 </div>
 <div id="PAY_loading_wrap" style="display:none;">支付信息读取中..</div>
-<script type="text/javascript" src="./script/you_page_information_pub.js"></script>
+<div id="audioRecordWrap" class="audio_record_wrap" style="display: none;">
+    <div class="ui_mask_transparent opaque"></div>
+    <div class="ui_actionsheet text-center">
+        <div class="start_widget" style="display: none;">
+            <div class="start">
+                开始
+            </div>
+            <div class="ui_actionsheet_action">
+                <div class="cancel">取消</div>
+            </div>
+        </div>
+        <div class="recording_widget" style="display: none;">
+            <div class="recording_area">
+                <p>- <span class="duration">0</span>s -</p>
+                <p class="ellipsis">.</p>
+                <p class="remark">最长60s，正在录音中</p>
+            </div>
+            <div class="ui_actionsheet_action">
+                <span class="button cancel">取消</span>
+                <span class="button send">发送</span>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="/script/you_page_information_pub.js?v=2016090601"></script>
 </body>
 
 </html>

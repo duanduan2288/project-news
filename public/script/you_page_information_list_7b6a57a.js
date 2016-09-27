@@ -1,10 +1,10 @@
 var wml = new (function(){
 	var modules = {}
 	function Module(fn){
-		this.exports = {}	
+		this.exports = {}
 		this.fn = fn
 	}
-	
+
 	function require(name){
 		return modules[name].create();
 	}
@@ -19,7 +19,7 @@ var wml = new (function(){
 			return this.exports;
 		}
 	}
-	
+
 	function define(name, fn){
 		if(modules[name]){
 			return modules[name].exports;
@@ -55,54 +55,6 @@ function login(succ_cbk){
 }
 
 exports.login = login
-});
-wml.define("component/shareTmp", function(require, exports){
-var cache = {}
-function tmpl(str, data) {
-	var fn = !/\W/.test(str) ?
-		cache[str] = cache[str] ||
-		tmpl(document.getElementById(str).innerHTML) :
-		new Function("obj",
-			"var p=[],print=function(){p.push.apply(p,arguments);};" +
-			"with(obj){p.push('" +
-			str
-			.replace(/[\r\t\n]/g, " ")
-			.split("<\?").join("\t")
-			.replace(/((^|\?>)[^\t]*)'/g, "$1\r")
-			.replace(/\t=(.*?)\?>/g, "',$1,'")
-			.split("\t").join("');")
-			.split("\?>").join("p.push('")
-			.split("\r").join("\\'") + "');}return p.join('');")
-
-	return data ? fn(data) : fn
-}
-
-return function(obj, data) {
-	if (!document.getElementById(obj)) {
-		console.log(obj + ' is lost')
-		return
-	}
-
-	data = data || Object
-
-	try {
-		var shareTpl = tmpl(obj, data)
-	} catch (e) {
-		console.log(e)
-	}
-
-	return shareTpl
-}
-
-});
-wml.define("you/app/menu", function(require, exports){
-return function(menu){
-	var str = ''
-	for (var i = 0; i < menu.length; i++) {
-		str += '<li><a href="'+menu[i].link+'">'+menu[i].txt+'</a></li>'
-	};
-	return str;
-}
 });
 wml.define("you/app/link", function(require, exports){
 var isDebug = false;
@@ -167,39 +119,71 @@ exports.aboutus = function(){
 }
 
 });
-wml.define("you/page/question_list", function(require, exports){
-var login = require('you/app/login')
-login.login();
-var shareTmp = require('component/shareTmp')
-var menu = require('you/app/menu')
-var gotoLink = require('you/app/link')
+wml.define("component/shareTmp", function(require, exports){
+var cache = {}
+function tmpl(str, data) {
+	var fn = !/\W/.test(str) ?
+		cache[str] = cache[str] ||
+		tmpl(document.getElementById(str).innerHTML) :
+		new Function("obj",
+			"var p=[],print=function(){p.push.apply(p,arguments);};" +
+			"with(obj){p.push('" +
+			str
+			.replace(/[\r\t\n]/g, " ")
+			.split("<\?").join("\t")
+			.replace(/((^|\?>)[^\t]*)'/g, "$1\r")
+			.replace(/\t=(.*?)\?>/g, "',$1,'")
+			.split("\t").join("');")
+			.split("\?>").join("p.push('")
+			.split("\r").join("\\'") + "');}return p.join('');")
 
-
-var TYPE = 'question'
-
-var page = 0
-	,limit =10
-	,isLoading = false
-	,isFinish = false
-	,hashToken = '#item'
-	,hashId = 0;
-var hash = window.location.hash;
-if (hash && hash.indexOf(hashToken) === 0) {
-	hash = hash.replace(hashToken, '');
-	hash = parseInt(hash);
-	if (!isNaN(hash) && hash > 0) {
-		hashId = hash;
-	}
+	return data ? fn(data) : fn
 }
 
+return function(obj, data) {
+	if (!document.getElementById(obj)) {
+		console.log(obj + ' is lost')
+		return
+	}
+
+	data = data || Object
+
+	try {
+		var shareTpl = tmpl(obj, data)
+	} catch (e) {
+		console.log(e)
+	}
+
+	return shareTpl
+}
+
+});
+wml.define("you/app/menu", function(require, exports){
+return function(menu){
+	var str = ''
+	for (var i = 0; i < menu.length; i++) {
+		str += '<li><a href="'+menu[i].link+'">'+menu[i].txt+'</a></li>'
+	};
+	return str;
+}
+});
+wml.define("you/page/information_list", function(require, exports){
+var login = require('you/app/login')
+login.login();
+var gotoLink = require('you/app/link')
+
+var shareTmp = require('component/shareTmp')
+var menu = require('you/app/menu')
+
+var TYPE = 'news'
 
 var menuData = [
 	{link:gotoLink.aboutus(),txt:'关于我们'}
 ]
 $('.menu_list').html(menu(menuData))
-$('.header_wrap').on('click', function(event) {
+
+$('.menu_btn').on('click', function(event) {
 	event.preventDefault();
-	// $('.menu_list_wrap').toggle()
 	$('#intro_page').show();
 	$('body').addClass('modal-open');
 	event.stopPropagation();
@@ -216,6 +200,29 @@ $(window).on('click', function(event) {
 	}
 });
 
+$('.con_wrap').on('click', '.con_item', function(event) {
+	event.preventDefault();
+	var id = $(this).attr('data-id')
+	location.hash = '#' + $(this).attr('id');
+	location.href = gotoLink.inforDetail(id)
+});
+
+var page = 0
+	,limit =10
+	,isLoading = false
+	,isFinish = false
+	,hashToken = '#item'
+	,hashId = 0;
+
+var hash = window.location.hash;
+if (hash && hash.indexOf(hashToken) === 0) {
+	hash = hash.replace(hashToken, '');
+	hash = parseInt(hash);
+	if (!isNaN(hash) && hash > 0) {
+		hashId = hash;
+	}
+}
+
 $('#search_form').on('submit', function(event) {
 	event.preventDefault();
 	var key = $(this).find('[name=key]').val().trim()
@@ -228,25 +235,13 @@ $('#search_form').on('submit', function(event) {
 	}
 });
 
-$('.con_wrap').on('click', '.con_item', function(event) {
-	event.preventDefault();
-	var id = $(this).attr('data-id')
-	location.hash = '#' + $(this).attr('id');
-	location.href = gotoLink.questionDetail(id)
-});
-
-//init 
-
+//init
 $(window).on('scroll', function(event) {
 	var _this = this
 	if($('.main_container').height() - $(_this).height() < $(_this).scrollTop()){
 		loadData()
 	}
 }).trigger('scroll')
-
-
-
-
 function loadData(isInit){
 	if(hashId == 0 && (isLoading || isFinish)) return;
 	$.ajax({
@@ -269,6 +264,7 @@ function loadData(isInit){
 				});
 				if(isInit){
 					$('.con_wrap').html(html)
+					
 				} else {
 					$('.con_wrap').append(html)
 				}
@@ -324,8 +320,9 @@ function search(key){
 				res.data.forEach(function(item){
 					html += shareTmp('con_item_tpl',{item:item})
 				});
-				$('.con_wrap').html(html)
-				$('.no_more').show()
+				$('.con_wrap').html(html);
+
+				$('.no_more').show();
 				isFinish = true;
 			}
 		}
@@ -341,12 +338,8 @@ $('.tab_wrap').on('click', '[link-type]', function(event) {
 	var linkFn = $(this).attr('link-type')
 	location.href =gotoLink[linkFn]()
 });
-$('#intro_page .icon').click(function(){
-          $('#intro_page').hide();
-          $('body').removeClass('modal-open');
-        });
+
+
+
 });
-$('.show-wenwen-layer').click(function () {
-	$('.wenwen-layer').toggle();
-})
-wml.run("you/page/question_list");
+wml.run("you/page/information_list");

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,  initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+	<title>jssdk测试</title>
+	<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+	<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+	<script src="//cdn.bootcss.com/vue/1.0.26/vue.min.js"></script>
+</head>
+<body>
+	<template id="mainTemplate">
+		<p>
+			<button @click="previewImage()">预览图片</button>
+		</p>
+		<p>
+			<button @click="audioButtonClick()">{{audioButtonText}}</button>
+			<span>语音总时间: {{audioRecord.duration}}S</span>
+		</p>
+	</template>
+	
+	<script>
+		var jsApiList = [
+			'onMenuShareTimeline',
+			'onMenuShareAppMessage',
+			'onMenuShareQQ',
+			'onMenuShareWeibo',
+			'onMenuShareQZone',
+			'startRecord',
+			'stopRecord',
+			'onVoiceRecordEnd',
+			'playVoice',
+			'pauseVoice',
+			'stopVoice',
+			'onVoicePlayEnd',
+			'uploadVoice',
+			'downloadVoice',
+			'chooseImage',
+			'previewImage',
+			'uploadImage',
+			'downloadImage',
+		];
+		function wxShareConfig() {
+		  $.ajax({
+		    type: "POST",
+		    url: "/news/share",
+		    dataType: "json",
+		    data: {
+		      url: location.href.split('#')[0]
+		    },
+		    success: function(res){
+		      res.jsApiList= jsApiList;
+		      wx.config(res);
+		      wx.ready(function(){
+		        console.log('jssdk config ready');
+		      });
+		      wx.error(function(){
+		        console.log('jssdk config error');
+		      });
+		    },
+		    error: function(){
+		      console.log('获取jssdk配置失败');
+		    }
+		  });
+		}
+		wxShareConfig();
+		var audioStates = {
+			beforeRecord: 'beforeRecord',
+			isRecording: 'isRecording',
+			afterRecorded: 'afterRecorded',
+			isStopRecording: 'isStopRecording',
+			isPlaying: 'isPlaying',
+			isPaused: 'isPaused',
+		};
+		var defaults = {
+			audioRecord: {
+				state: audioStates.beforeRecord,
+				startTime: null,
+				endTime: null,
+				localId: null,
+				duration: 0,
+			},
+		};
+		function getSeconds(startDate, endDate) {
+			return Math.round((endDate.getTime() - startDate.getTime())/1000);
+		}
+		new Vue({
+			el: '#mainTemplate',
+			data: defaults,
+			computed: {
+				audioButtonText: function() {
+					var state = this.audioRecord.state;
+					switch(state) {
+						case audioStates.beforeRecord:
+							return '开始录音';
+						case audioStates.isRecording:
+							return '停止录音';
+						case audioStates.isStopRecording:
+							return '正在停止录音...';
+						case audioStates.afterRecorded:
+							return '播放语音';
+						case audioStates.isPlaying:
+							return '暂停语音';
+						case audioStates.isPaused:
+							return '播放语音';
+					}
+				},
+			},
+			methods: {
+				previewImage: function(){
+					wx.previewImage({
+					    current: 'http://www.929898.org.cn/imgall/nfwwomjvfyzwy2lbnyxgg33n/2015/f2/116/d/3.jpg',
+					    urls: [
+					    'http://www.929898.org.cn/imgall/nfwwomjvfyzwy2lbnyxgg33n/2015/f2/116/d/3.jpg',
+					    'http://pic14.nipic.com/20110615/1347158_233357498344_2.jpg',
+					    ]
+					});
+				},
+				countAudioDuration: function() {
+					var record = this.audioRecord;
+					if (record.startTime) {
+						if (record.endTime) {
+							record.duration = getSeconds(record.startTime, record.endTime);
+						} else {
+							record.duration = getSeconds(record.startTime, new Date());
+						}
+						if (record.state == audioStates.isRecording) {
+							setTimeout(this.countAudioDuration, 1000);
+						}
+					}
+				},
+				audioButtonClick: function() {
+					var record = this.audioRecord;
+					switch(record.state) {
+						case audioStates.beforeRecord:
+							wx.startRecord();
+							record.state = audioStates.isRecording;
+							record.startTime = new Date();
+							this.countAudioDuration();
+							break;
+						case audioStates.isRecording:
+							record.state = audioStates.isStopRecording;
+							wx.stopRecord({
+							    success: function (res) {
+							        record.localId = res.localId;
+							    },
+							    complete: function() {
+							    	record.state = audioStates.afterRecorded;
+							    	record.endTime = new Date();
+							    }
+							});
+							break;
+						case audioStates.isStopRecording:
+							break;
+						case audioStates.afterRecorded:
+							if (record.localId) {
+								record.state = audioStates.isPlaying;
+								wx.playVoice({
+								    localId: record.localId
+								});
+							}
+							break;
+						case audioStates.isPlaying:
+							if (record.localId) {
+								record.state = audioStates.isPaused;
+								wx.pauseVoice({
+								    localId: record.localId
+								});
+							}
+							break;
+						case audioStates.isPaused:
+							if (record.localId) {
+								record.state = audioStates.isPlaying;
+								wx.playVoice({
+								    localId: record.localId
+								});
+							}
+							break;
+					}
+				}
+			},
+			ready: function() {
+				var _this = this;
+				wx.ready(function() {
+					wx.onVoiceRecordEnd({
+					    complete: function (res) {
+					    	_this.audioRecord.localId = res.localId;
+					    	_this.audioRecord.endTime = new Date();
+					    	_this.audioRecord.state = audioStates.afterRecorded;
+					    }
+					});
+					wx.onVoicePlayEnd({
+					    complete: function (res) {
+					        _this.audioRecord.state = audioStates.afterRecorded;
+					    }
+					});
+				});
+			}
+		});
+		window.addEventListener("pagehide", function(){
+		    alert('heheh');
+		    console.log('test1');
+		    console.log('test2');
+		}, false);
+	</script>
+</body>
+</html>

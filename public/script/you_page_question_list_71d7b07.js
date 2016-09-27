@@ -197,7 +197,7 @@ var menuData = [
 	{link:gotoLink.aboutus(),txt:'关于我们'}
 ]
 $('.menu_list').html(menu(menuData))
-$('.header_wrap').on('click', function(event) {
+$('.menu_btn').on('click', function(event) {
 	event.preventDefault();
 	// $('.menu_list_wrap').toggle()
 	$('#intro_page').show();
@@ -341,12 +341,5 @@ $('.tab_wrap').on('click', '[link-type]', function(event) {
 	var linkFn = $(this).attr('link-type')
 	location.href =gotoLink[linkFn]()
 });
-$('#intro_page .icon').click(function(){
-          $('#intro_page').hide();
-          $('body').removeClass('modal-open');
-        });
 });
-$('.show-wenwen-layer').click(function () {
-	$('.wenwen-layer').toggle();
-})
 wml.run("you/page/question_list");

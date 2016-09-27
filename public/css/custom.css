@@ -1,0 +1,614 @@
+body {
+	background-color: rgb(230,230,230)!important;
+}
+
+.status_wrap {
+	color: #666666;
+	background-color: #f5f5f5;
+	height: .82rem;
+	line-height: .82rem;
+	padding: 0 0 0 .4rem;
+	position: relative;
+}
+.status_wrap .menu_wrap {
+	position: absolute;
+	right: 0;
+	top: 0;
+	font-size: .3rem;
+	line-height: .82rem;
+	padding: 0 .3rem 0 0;
+	color: #5f79af;
+}
+.back_wrap {
+	font-size: .34rem;
+	padding: .5rem;
+	color: #666666;
+	border-bottom: none;
+	margin-bottom: 0;
+}
+.back_wrap .tle{
+	font-weight: bold;
+}
+.back_wrap .time, .answer_item .time{
+	font-size: .24rem;
+	float: right;
+	color: #999999;
+}
+.detail_con .time {
+	font-size: .24rem;
+	text-align: right;
+	color: #999999;
+	padding: 0 .3rem .2rem 0;
+}
+.ssz-delete {
+	font-size: .34rem;
+}
+.main_container {
+	background-color: #FFFFFF;
+}
+.detail_con .hide_info {
+	padding: 0 .5rem;
+}
+.detail_con p {
+	padding: 0;
+}
+.detail_con .con {
+	color: #666666;
+	font-size: .35rem;
+	padding: 0 .4rem .33rem .5rem!important;
+	margin: 0!important;
+	line-height: .52rem;
+	letter-spacing: .04rem;
+}
+.detail_con .hide_info p.ssz-p-1 {
+	background: #FFFFFF;
+	padding: 0 0 .33rem!important;
+	margin: 0!important;
+	border: none;
+	color: #5f79af;
+	line-height: .52rem;
+	letter-spacing: .04rem;
+	font-size: .35rem;
+}
+.detail_con .open_btn {
+	background-color: #FFFFFF;
+	color: #5f79af;
+	border-top: .03rem solid #999999;
+	font-size: .34rem;
+	padding-top: .2rem;
+	padding-bottom: .2rem;
+	margin: 0;
+}
+.detail_con .open_btn img {
+	height: .34rem;
+	vertical-align: text-top;
+}
+.count_info {
+	text-align: center;
+	font-size: .35rem;
+	color: #999;
+}
+.py1 {
+	padding: 0 !important;
+}
+.footer_wrap {
+	text-align: center;
+	padding-bottom: 1.2rem;
+}
+.custom_pub_btn {
+	color: #FFF;
+	display: inline-block;
+	background-color: #5f79af;
+	font-size: .28rem;
+	line-height: .78rem;
+	padding: 0 .5rem;
+	-webkit-border-radius: 0.1rem;
+	border-radius: 0.1rem;
+	letter-spacing: .04rem;
+}
+.footer_wrap .share_wrap {
+	color: #999999;
+	margin: .7rem 30%;
+	line-height: .45rem;
+}
+.share_wrap img{
+	width: 1.3rem;
+}
+.tab_fixed {
+	position: fixed;
+	left: 0;
+	width: 100%;
+	bottom: 0;
+	border-top: .03rem solid rgb(222,222,222);
+	text-align: center;
+	background-color: #FFFFFF;
+}
+.tab_fixed a {
+	width: 49%;
+	font-size: .32rem;
+	color: #999999;
+	line-height: 1rem;
+	display: inline-block;
+	text-align: center;
+}
+.tab_fixed a img {
+	height: .32rem;
+	vertical-align: text-top;
+}
+.tab_fixed a.active {
+	color: #5f79af;
+}
+.show_after_loaded {
+	display: none;
+}
+.share_modal {
+	position: fixed;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.5);
+    width: 100%;
+    height: 100%;
+    color: #FFF;
+    top: 0;
+    left: 0;
+    text-align: right;
+    display: none;
+}
+.share_modal img {
+	max-width: 100%;
+}
+.main_container .custom_pub_btn {
+	width: auto;
+}
+.shishi_btn_group {
+	padding: .2rem .5rem .4rem;
+}
+.shishi_btn_group p{
+	font-size: .24rem;
+	color:#bbb;
+	line-height: .3rem;
+}
+#shishi-auth {
+	padding: .3rem .5rem 0;
+}
+.custom_pub_btn.my1 {
+	background-color: #FFF;
+	color: black;
+	border: .03rem solid #666666;
+	line-height: .68rem;
+}
+.custom_pub_btn.gray {
+	border: .03rem solid gray;
+	background-color: #FFF;
+	color:#bbb;;
+}
+.detail_con .open_btn:hover {
+	color: #5f79af;
+}
+
+
+
+
+.back_wrap.question {
+	padding: 0 .5rem;
+	margin-bottom: .2rem;
+}
+.main_container.question {
+	background-color: inherit;
+}
+.answer_list_wrap .answer_item {
+	margin-left: 0;
+	margin-right: 0;
+	margin-bottom: 0;
+	box-shadow: none;
+	border: none;
+	border-bottom: 1px solid #dcdcdc;
+}
+.question_btn_group {
+	text-align: center;
+}
+.custom_pub_btn.pub_btn {
+	background-color: #48abff;
+}
+.answer_list_wrap .answer_item .answer_con {
+	color: #666666;
+	font-size: .35rem;
+	line-height: .52rem;
+	letter-spacing: .04rem;
+	padding: 0 .4rem .33rem .5rem!important;
+}
+.answer_list_wrap .answer_item .answer_con .hide_info {
+	background: #FFF;
+}
+.answer_list_wrap .answer_item .answer_con .hide_info .hide_txt {
+	border: none;
+	color: #5f79af;
+}
+.opt_wrap {
+	border-top: none;
+}
+.shishi_wrap {
+	padding: 1rem .5rem 0;
+	text-align: left;
+}
+.shishi_wrap p {
+	font-size: .24rem;
+	line-height: .4rem;
+	color: #555;
+}
+.shishi_wrap .title {
+	font-size: .28rem;
+	font-weight: bold;
+	line-height: .52rem;
+	color: #5f79af;
+}
+
+.main_container.pub {
+	padding: 0;
+}
+.form-group {
+	margin: 0 .25rem;
+	padding: .4rem 0 .4rem .25rem;
+	border-bottom: .03rem solid #e5e5e5;
+}
+.form-group.p-t-sm {
+	padding-top: .2rem;
+}
+.form-group.evaluate {
+	border-bottom: none;
+	color: #a3a3a3;
+	font-weight: bold;
+}
+.form-group.textarea {
+	padding-bottom: 0;
+	border-bottom: none;
+}
+.form-group.evaluate small {
+	font-weight: normal;
+}
+.main_container .form-group h2 {
+	font-size: .32rem;
+	color: #333333;
+	margin-top: 0;
+	margin-bottom: .3rem;
+}
+.form-group h2 small{
+	font-weight: normal;
+	font-size: .3rem;
+}
+.main_container .form-group textarea {
+	border: none;
+	font-size: .3rem;
+	padding: 0 .25rem 0 0;
+	line-height: .52rem;
+	font-size: .35rem;
+	color: #666666;
+	height: 1.6rem;
+	border-bottom: .03rem solid #5f79af;
+}
+.form-group .input_hint, .input_hint {
+	text-align: right;
+	color: #5f79af;
+	line-height: 1.2;
+}
+#qrcode_content {
+	background: inherit;
+	color: #5f79af;
+}
+.main_container .price_wrap .price_item, .event_type_wrap .price_item , .main_container .price_wrap .price_custom{
+	background: none;
+	background-image: url(../img/label.png);
+	background-size: 100% 100%;
+	border: none;
+	color: #5f79af;
+}
+.main_container .price_wrap .price_item.act, .event_type_wrap .price_item.act, .main_container .price_wrap .price_custom.act {
+	background: none;
+	background-image: url(../img/label-active.png);
+	background-size: 100% 100%;
+	color: #5f79af;
+	font-weight: bold;
+}
+.main_container .price_wrap .price_item.act:hover, .event_type_wrap .price_item.act:hover {
+	color: #5f79af;
+}
+.main_container.pub .pub_btn {
+	width: 100%;
+	height: .94rem;
+	background-color: #5f79af;
+	line-height: .94rem;
+	border-radius: 0;
+	font-size: .32rem;
+}
+.main_container .hide_upload_wrap .upload_item, .main_container .other_upload_wrap .upload_item, .main_container .hide_upload_wrap .upload_btn, .main_container .other_upload_wrap .upload_btn 
+{
+	width: 1.2rem;
+	height: 1.2rem;
+}
+.main_container .hide_upload_wrap .upload_btn input[type=file], .main_container .other_upload_wrap .upload_btn input[type=file] {
+	opacity: 0;
+}
+.main_container .hide_upload_wrap .upload_btn, .main_container .other_upload_wrap .upload_btn  {
+	background-image: url(../img/upload_add_icon.png);
+	border: none;
+}
+.main_container .hide_upload_wrap .upload_item:after, .main_container .other_upload_wrap .upload_item:after {
+	line-height: .95rem;
+}
+
+.reply_wrap {
+	padding: 0;
+	margin: .4rem 0;
+	background-color: #FFF;
+}
+.main_container .pub_btn {
+	background-color: #5f79af;
+	margin-bottom: .4rem;
+}
+
+.main_container.question_pub {
+	min-height: 100%;
+}
+.main_container.question_pub .form-group h2 {
+	margin-bottom: .5rem;
+}
+.search_wrap {
+	background: #5f79af;
+}
+.top_wrap .site_tle.py1 {
+	padding: .2rem .25rem .15rem .25rem!important;
+}
+.con_wrap .con_item {
+	margin-left: 0;
+	margin-right: 0;
+}
+.main_container.list {
+	background-color: inherit;
+}
+.main_container.list .custom_pub_btn {
+	line-height: .6rem;
+}
+.con_wrap .con_item .con {
+	padding: 0 .5rem .25rem;
+	color: #444;
+}
+.con_wrap .con_item .con_footer {
+	padding: 0 .4rem;
+}
+.con_wrap .con_item .user_info .hongbao, .con_wrap .con_item .user_info .prove {
+	margin-right: .4rem;
+}
+.prove.act {
+	background: #5f79af!important;
+}
+.con_wrap .con_item {
+	margin-bottom: .6rem;
+	box-shadow: none;
+}
+
+.icon_image, .authenticate_icon {
+	width: .5rem;
+	height: .5rem;
+}
+.icon_image {
+	margin-bottom: .08rem;
+}
+
+.see_btn {
+	line-height: .6rem;
+	font-size: .32rem;
+}
+a.see_btn {
+	color: #66cccc;
+}
+a.see_btn.visited {
+	color: green;
+}
+
+.detail_con .con {
+	text-indent: .75rem;
+}
+
+.con_wrap .con_item .con {
+	letter-spacing: .04rem;
+}
+
+.top_wrap .search_wrap .search_input {
+	padding-top: .28rem;
+	padding-bottom: .28rem;
+	border-right: 1px solid #f5f5f5!important;
+}
+.top_wrap .search_wrap button {
+	line-height: .56rem;
+	height: .56rem;
+}
+.search_wrap {
+	background-color:#f5f5f5;
+}
+.top_wrap {
+	border-bottom: none;
+}
+
+.s1 img, .s2 img, .s3 img, .ssz-container img {
+    width: .6rem;
+}
+.ssz-container.table .table-cell {
+	padding:0 .1rem;
+}
+.detail_con .ssz-span {
+	border: 6px solid #f5f5f5;
+}
+.form-group .input_hint.red, .input_hint.red {
+	color: red;
+}
+.upload_item .img_item {
+	height: 100%;
+}
+.share_modal.page .content{
+	position: absolute;
+	top: 6%;
+	left: .5rem;
+	bottom: 15%;
+	right: .5rem;
+	text-align: left;
+	background: rgb(245,245,245);
+	color: #444;
+	overflow-y: scroll;
+	padding: .2rem .4rem;
+	font-size: .28rem;
+	line-height: .5rem;
+	border-radius: .1rem;
+}
+.share_modal.page .close {
+	position: absolute;
+	top: 0;
+	right: .2rem;
+	color: #fff;
+	font-size: .8rem;
+	line-height: 1rem;
+}
+.share_modal.page .header {
+	text-align: center;
+	font-weight: bold;
+	color: #5f79af;
+	font-size: .32rem;
+}
+.share_modal.page .footer {
+	text-align: center;
+	padding: .28rem 0 .56rem;
+}
+.share_modal .form {
+	background: rgb(245,245,245);
+	color: #444;
+	padding: .2rem .4rem;
+	font-size: .28rem;
+	line-height: .5rem;
+	border-radius: .1rem;
+	text-align: center;
+}
+.share_modal .form .form-group h2 {
+	font-size: .32rem;
+	color: #333333;
+	margin-top: 0;
+	margin-bottom: .3rem;
+}
+.share_modal .form .form-group textarea {
+	border: none;
+	font-size: .3rem;
+	padding: 0 .25rem 0 0;
+	line-height: .52rem;
+	font-size: .35rem;
+	color: #666666;
+	height: 1.6rem;
+	width: 100%;
+	border-bottom: .03rem solid #5f79af;
+}
+.chapter {
+	padding: .28rem 0 .56rem;
+}
+.chapter .title {
+	color: #5f79af;
+	font-size: .32rem;
+	padding-bottom: .28rem;
+}
+.chapter .detail {
+	background-color: #FFF;
+	padding: .28rem;
+	border-radius: .3rem;
+}
+.answer_list_wrap .answer_item .other_wrap .other_img_wrap,
+.answer_list_wrap .answer_item .answer_con .hide_info .hide_img_wrap
+{
+	padding: 0;
+	background: inherit;
+}
+.answer_list_wrap .answer_item .other_wrap .other_img_wrap .img_item,
+.answer_list_wrap .answer_item .answer_con .hide_info .img_item
+{
+	width: 31%;
+	margin: 3px .5% 3px .5%;
+	border: 6px solid #f5f5f4;
+	float: left;
+	padding: 0;
+}
+.answer_list_wrap .answer_item .other_wrap .other_img_wrap .img_item.hide_files_info {
+	height: 100%;
+	background-color: rgb(210, 210, 210);
+	display: table;
+}
+.answer_list_wrap .answer_item .other_wrap .other_img_wrap .img_item.hide_files_info p {
+	display: table-cell;
+	vertical-align: middle;
+	color: #999999;
+	text-align: center;
+	font-size: .28rem;
+	line-height: 1.4;
+}
+.answer_list_wrap .answer_item .other_wrap .other_img_wrap .img_item img
+{
+	width: 100%;
+}
+.ssz-answer-1 {
+	padding: 0;
+}
+
+.filetype_icon {
+  margin-right: 0;
+  margin-bottom: .08rem;
+  display: inline-block;
+  width: .4rem;
+  height: .4rem;
+  font-size: 0;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+.icon_image {
+	background-image: url(../img/icon_image3.png);
+}
+.icon_vedio {
+	background-image: url(../img/icon_video3.png);
+}
+.icon_voice {
+	background-image: url(../img/icon_voice2.png);
+}
+.icon_txt {
+	background-image: url(../img/icon_txt2.png);
+}
+.icon_other {
+	background-image: url(../img/icon_other2.png);
+}
+
+.top_wrap .site_tle p img {
+	height: .5rem;
+}
+.no_more {
+	padding-bottom: 1rem;
+}
+
+#shishi-auth .detail_con {
+	border: 1px solid gray;
+}
+
+#shishi-auth .detail_con .con {
+	padding: 0 0 .33rem 0!important;
+}
+#shishi-auth .detail_con .hide_info {
+	padding: 0;
+}
+
+.top_wrap .menu_wrap {
+	margin-top: .1rem;
+}
+.top_wrap .menu_wrap .menu_btn {
+	width: .5rem;
+	height: .5rem;
+}
+
+.con_wrap .con_item .con_footer {
+	border-top: 1px solid rgb(222,222,222);
+}
+
+.answer_list_wrap .answer_item .other_wrap .other_img_wrap .img_item {
+	border: 6px solid rgb(210, 210, 210);
+}

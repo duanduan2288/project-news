@@ -309,30 +309,18 @@ wml.define("you/page/information_detail", function (require, exports) {
       return;
     })
   }).on('click', '.ssz-container [data-value], .opt_wrap [data-value]', function (event) {
-    var $voteContainer = $(this).closest('.js-vote-container');
-    var $paybackSelectWrap = $voteContainer.find('.js-payback-select-wrap');
-    var voteValue = $(this).data('value');
-    var isSubmitButton = $(this).data('submit');
     //投票
     // 购买后才能进行评价，否则点击无效
     if ($('.open_btn').length > 0) {
       return false;
     }
-    if ($voteContainer.data('me') == 1 || $voteContainer.data('vote-value') != 0) {
+    if ($(this).parent().attr('data-me') == 1 || $(this).parent().attr('data-vote-value') != 0) {
       return false;
     }
-    if (voteValue == 2) {
-      if (!isSubmitButton) {
-        return $paybackSelectWrap.toggle();
-      }
-    } else {
-      $paybackSelectWrap.hide();
-    }
-    if ($(this).data('value') == 1 && $voteContainer.data('confirm-status') == 2) {
+    if ($(this).attr('data-value') == 1 && $('#cannot-click').length > 0) {
       alert('此为很赞信息，不能进行此种评价!');
       return;
     }
-    
     if (!confirm('确认提交评价吗？')) {
       return false;
     }
@@ -340,36 +328,31 @@ wml.define("you/page/information_detail", function (require, exports) {
     if (this.isDoing) return;
     var _this = this
     event.preventDefault();
-    var paybackCount = isSubmitButton ? parseInt($paybackSelectWrap.find('.js-payback-select').val()) : 0;
     var val = $(this).attr('data-value')
-    var params = {
-      id: detail_id,
-      type: detail_type,
-      vote: val,
-    };
-    if (paybackCount > 0) {
-      params.percent = paybackCount;
-    }
     $.ajax({
       url: '/news/vote',
       type: 'post',
       dataType: 'json',
-      data: params,
+      data: {
+        id: detail_id
+        , type: detail_type
+        , vote: val
+      },
       beforeSend: function () {
         _this.isDoing = true;
       },
       success: function (res) {
+        if (res.code == 101 || res.code == 102) {
+          console.log(res.msg);
+          return;
+        }
         alert(res.msg)
         if (res.code == 200) {
-          $paybackSelectWrap.hide();
-          if (val == 2) {
-            $voteContainer.find('[data-value="2"] .js-vote-text').text('已申诉退款'+paybackCount+'%');
-          }
-          $voteContainer.find('[data-value="'+val+'"] img').attr('src', './img/0' + (4 - val) + '.png');
+          $(_this).parent().children('div').eq(4-val-1).find('img').attr('src', './img/0' + (4 - val) + '.png');
           $ele = $('#ssz-data-' + val);
           $ele.html(parseInt($ele.html()) + 1);
-          $voteContainer.attr('data-vote-value', val);
-          var price = $voteContainer.data('price') ? $voteContainer.data('price') : 0;
+          $(_this).parent().attr('data-vote-value', val);
+          var price = $(_this).parent().data('price') ? $(_this).parent().data('price') : 0;
           if (val == 1 && price >= 1) {
             forceReload();
           }
@@ -480,8 +463,8 @@ wml.define("you/page/information_detail", function (require, exports) {
         var href = $a.attr('href');
         if (isImage(href)) {
           imageList.push(href);
-          $a.attr('data-href', href);
-          $a.attr('data-preview-image', 1);
+          $a.data('href', href);
+          $a.data('preview-image', 1);
           $a.attr('href', 'javascript:void(0);');
           return $a.prop('outerHTML');
         } else {
@@ -537,8 +520,8 @@ wml.define("you/page/information_detail", function (require, exports) {
           });
         }
         */
-        var a = ['', '小丫鉴定中', '小丫觉得很赞', '小丫觉得有效', '小丫不确定', '小丫部分不确定', '小丫觉得无效'];
         if (item.confirm_status != 0) {
+          var a = ['', '小丫鉴定中', '小丫觉得很赞', '小丫觉得有效', '小丫不确定', '小丫部分不确定', '小丫觉得无效'];
           $('.confirm_status_tip').html('<span style="color:orange;">丫</span><span style="color:#48abff;">丫</span>现场信息审核：本条信息'+ a[item.confirm_status]);
         } else if (item.is_me && item.price > 0) {
           $('.confirm_status_tip').text('申请小丫鉴定').addClass('ssz-btn');
@@ -546,8 +529,8 @@ wml.define("you/page/information_detail", function (require, exports) {
             if (confirm('确定申请小丫鉴定吗？')) {
               $.post('/news/update', {type: 'news', id: detail_id, 'confirm_status': 1}, function(data) {
                 if (data.code == 200) {
-                  $('.confirm_status_tip').off('click').removeClass('ssz-btn').html('<span style="color:orange;">丫</span><span style="color:#48abff;">丫</span>现场信息审核：本条信息'+ a[1]);
                   alert('申请鉴定成功！');
+                  forceReload();
                 } else {
                   alert('程序开了个小差...');
                 }
@@ -814,7 +797,7 @@ wml.define("you/page/information_detail", function (require, exports) {
           $('#intro_page').show();
           $('body').addClass('modal-open');
         });
-        $('#intro_page .icon').click(function(){
+        $('#intro_page .close').click(function(){
           $('#intro_page').hide();
           $('body').removeClass('modal-open');
         });
@@ -835,7 +818,8 @@ wml.define("you/page/information_detail", function (require, exports) {
     $('.tip').html(msg)
   }
   function wxShareConfig(item) {
-    var title = item.price > 0 ? item.nickname+'在'+item.event_type+'现场：我有现场要发布，看了不满你退钱' : item.nickname+'有'+item.event_type+'现场公开发布';
+    var price = item.price > 0 ? '开价'+item.price+'元' : '公开';
+    var title = item.nickname+'发布了'+price+'的现场'+item.event_type+'信息，快来看啊';
     var shareConfig = {
       title: title,
       imgUrl: item.avatar || window.location.origin+'/img/share_avatar.png'

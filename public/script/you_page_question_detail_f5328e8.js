@@ -283,8 +283,6 @@ wml.define("you/page/question_detail", function (require, exports) {
     content: 300,
     qrcode_content: 2000
   };
-  var answerList = [];
-
   function onTextareaInput($textarea, limit) {
     var len = $textarea.val().length;
     var $hint = $textarea.siblings('.input_hint');
@@ -317,50 +315,38 @@ wml.define("you/page/question_detail", function (require, exports) {
   }).on('click', '.cancel_btn', function (event) {
     $('.question_btn_group').show()
     $('.reply_wrap').hide()
-  }).on('click', '.js-vote-submit', function (event) {
-    var $voteContainer = $(this).closest('.js-vote-container');
-    var $paybackSelectWrap = $(this).closest('.js-payback-select-wrap');
-    var $voteSelect = $paybackSelectWrap.find('.js-vote-select');
-    var $paybackSelect = $paybackSelectWrap.find('.js-payback-select');
-    var voteValue = $voteSelect.val();
-    var confirmStatus = $voteContainer.data('confirm-status');
+  }).on('click', '.ssz-container [data-value]', function (event) {
     // 投票
     // 购买后才能进行评价，否则点击无效
-    if ($voteContainer.prev('.open_btn').length > 0) {
+    if ($(this).parent().prev('.open_btn').length > 0) {
       return false;
     }
-    if ($voteContainer.attr('data-me') == 1 || $voteContainer.attr('data-vote-value')) {
+    if ($(this).parent().attr('data-me') == 1 || $(this).parent().attr('data-vote-value')) {
       console.log('不能给自己投票或已经有过投票了');
       return false;
     }
-    if (voteValue == 1 && confirmStatus == 2) {
+    if ($(this).attr('data-value') == 1 && $('#cannot-click').length > 0) {
       alert('此为很赞信息，不能进行此种评价!');
       return;
     }
-    
     if (!confirm('确认提交评价吗？')) {
       return false;
     }
-    var __id = $voteContainer.attr('data-id');
+    var __id = $(this).parent().attr('data-id');
     if (this.isDoing) return;
     var _this = this;
     event.preventDefault();
-    var paybackCount = voteValue == 2 ?  $paybackSelect.val() : 0;
-    var val = voteValue;
-    var params = {
-      q_id: detail_id,
-      id: __id,
-      type: 'answer',
-      vote: val,
-    };
-    if (paybackCount > 0) {
-      params.percent = paybackCount;
-    }
+    var val = $(this).attr('data-value')
     $.ajax({
       url: '/news/vote',
       type: 'post',
       dataType: 'json',
-      data: params,
+      data: {
+        q_id: detail_id,
+        id: __id
+        , type: 'answer'
+        , vote: val
+      },
       beforeSend: function () {
         _this.isDoing = true;
       },
@@ -373,17 +359,10 @@ wml.define("you/page/question_detail", function (require, exports) {
           return;
         }
         if (res.code == 200) {
-          $paybackSelectWrap.hide();
-          var answerItem = null;
-          for (var i in answerList) {
-            if (answerList[i].id == __id) {
-              answerItem = answerList[i];
-            }
-          }
-          $voteContainer.find('.js-vote-result').text(getVoteResultText(answerItem, val, paybackCount)).show();
+          $(_this).parent().children('div').eq(4-val-1).find('img').attr('src', './img/0' + (4 - val) + '.png');
           $ele = $('#ssz-data-' + (4 - val));
           $ele.html(parseInt($ele.html()) + 1);
-          $voteContainer.attr('data-vote-value', val);
+          $(_this).parent().attr('data-vote-value', val);
         }
       },
       complete: function () {
@@ -398,29 +377,6 @@ wml.define("you/page/question_detail", function (require, exports) {
       forceReload();
       return;
     })
-  }).on('change', '.js-vote-select', function(){
-    var voteValue = $(this).val();
-    var $paybackSelectWrap = $(this).closest('.js-payback-select-wrap');
-    var className = 'hide-payback';
-    var answerItem = null;
-    var $voteContainer = $(this).closest('.js-vote-container');
-    var __id = $voteContainer.attr('data-id');
-    for (var i in answerList) {
-      if (answerList[i].id == __id) {
-        answerItem = answerList[i];
-      }
-    }
-    if (voteValue == 2) {
-      $paybackSelectWrap.removeClass(className);
-    } else {
-      $paybackSelectWrap.addClass(className);
-    }
-    var $voteText = $paybackSelectWrap.find('.js-vote-text');
-    if (voteValue == 1 || voteValue == 3) {
-      $voteText.text(getPaybackText(answerItem, voteValue)).show();
-    } else {
-      $voteText.text('').hide();
-    }
   });
 
 // $('.main_container').on('click', '.hide_con_btn', function(event) {
@@ -680,9 +636,9 @@ wml.define("you/page/question_detail", function (require, exports) {
           if (isImage(href)) {
             imageList[k] = imageList[k] || [];
             imageList[k].push(href);
-            $a.attr('data-href', href);
-            $a.attr('data-answer', k);
-            $a.attr('data-preview-image', 1);
+            $a.data('href', href);
+            $a.data('answer', k);
+            $a.data('preview-image', 1);
             $a.attr('href', 'javascript:void(0);');
             return $a.prop('outerHTML');
           } else {
@@ -709,7 +665,6 @@ wml.define("you/page/question_detail", function (require, exports) {
       if (res.code == 200) {
         var item = res.data;
         handleQuestionData(item);
-        answerList = item.answer || [];
         var html = shareTmp('detail_tpl', {
           item: item
         })
@@ -723,7 +678,7 @@ wml.define("you/page/question_detail", function (require, exports) {
             , id: item.id
           })
         );
-        $('.img_item.hide_files_info').height($('.img_item.hide_files_info').width() * 150 / 120);
+        $('.img_item.hide_files_info').height(($('.img_item.hide_files_info').width()-12) * 638 / 365 + 13);
         $('.main_container a[data-preview-image]').click(function(){
           var index = parseInt($(this).data('answer'));
           wx.previewImage({
@@ -833,7 +788,7 @@ wml.define("you/page/question_detail", function (require, exports) {
           $('#intro_page').show();
           $('body').addClass('modal-open');
         });
-        $('#intro_page .icon').click(function(){
+        $('#intro_page .close').click(function(){
           $('#intro_page').hide();
           $('body').removeClass('modal-open');
         });
@@ -1158,7 +1113,7 @@ wml.define("you/page/question_detail", function (require, exports) {
   ];
   function wxShareConfig(item) {
     var shareConfig = {
-      title: item.nickname+'正在花'+item.price+'元求助一个'+item.event_type+'现场问题',
+      title: item.nickname+'打赏'+item.price+'元提问了现场'+item.event_type+'问题，有谁到场过？',
       imgUrl: item.avatar || window.location.origin+'/img/share_avatar.png'
     };
     $.ajax({
